@@ -1,0 +1,21 @@
+{
+    "folders":
+    [
+        {
+            "path": ".",
+            "folder_exclude_patterns": [
+                "*/__pycache__",
+                "*.directory",
+                "*/.ipynb_checkpoints",
+                "*/.empty",
+                ".git/",
+                "data/",
+                "analysis/",
+                "temp/",
+                "help/singularity/singularity/",
+                "**.pkl"
+            ],
+            "follow_symlinks": true,
+        }
+    ]
+}
