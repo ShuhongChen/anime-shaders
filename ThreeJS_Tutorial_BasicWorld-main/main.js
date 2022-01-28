@@ -147,8 +147,23 @@ class BasicWorldDemo {
 		);
 		s2.position.set(10, 5, 0);
 		s2.castShadow = true;
+		s2.rotation.x = 10.0;
 		this._scene.add(s2);
 		this._sphere = s2;
+
+		const s3 = new THREE.Mesh(
+			new THREE.SphereGeometry(100, 32, 32),
+			new THREE.ShaderMaterial({
+				uniforms: {},
+				vertexShader: _VS,
+				fragmentShader: _FS,
+			})
+		);
+		s3.position.set(0, 0, 0);
+		s3.castShadow = false;
+		s3.material.side = THREE.DoubleSide;
+		this._scene.add(s3);
+		this._biggerSphere = s3;
 
 		// const box = new THREE.Mesh(
 		//   new THREE.SphereGeometry(2, 32, 32),
@@ -191,6 +206,7 @@ class BasicWorldDemo {
 	//at each frame, this runs
 	_Step(timeElapsed) {
 		let timeElapsedS = 0.0;
+		const up = new THREE.Vector3(0, 1, 0);
 
 		//I dunno why this._totalTime always comes out as NaN as if the constructor never ran...
 		if (isNaN(this._totalTime)) {
@@ -205,7 +221,8 @@ class BasicWorldDemo {
 
 		this._totalTime += timeElapsedS;
 		//const v = Math.sin(this._totalTime * 2.0);
-		this._sphere.rotation.y = this._totalTime;
+		this._sphere.rotateOnWorldAxis(up, 0.01);
+		this._biggerSphere.rotation.y = -this._totalTime;
 	}
 }
 
