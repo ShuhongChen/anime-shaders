@@ -165,6 +165,20 @@ class BasicWorldDemo {
 		this._scene.add(s3);
 		this._biggerSphere = s3;
 
+		const s4 = new THREE.Mesh(
+			new THREE.SphereGeometry(3, 32, 32),
+			new THREE.ShaderMaterial({
+				uniforms: {},
+				vertexShader: _VS,
+				fragmentShader: _FS,
+			})
+		);
+		s4.position.set(0, 5, 10);
+		s4.castShadow = true;
+		s4.material.side = THREE.DoubleSide;
+		this._scene.add(s4);
+		this._bouncySphere = s4;
+
 		// const box = new THREE.Mesh(
 		//   new THREE.SphereGeometry(2, 32, 32),
 		//   new THREE.MeshStandardMaterial({
@@ -178,7 +192,6 @@ class BasicWorldDemo {
 		// this._scene.add(box);
 
 		this._totalTime = 0.0;
-		console.log("init: " + this._totalTime);
 
 		this._RAF();
 	}
@@ -208,11 +221,6 @@ class BasicWorldDemo {
 		let timeElapsedS = 0.0;
 		const up = new THREE.Vector3(0, 1, 0);
 
-		//I dunno why this._totalTime always comes out as NaN as if the constructor never ran...
-		if (isNaN(this._totalTime)) {
-			this._totalTime = 0.0;
-		}
-
 		if (!isNaN(timeElapsed)) {
 			timeElapsedS = timeElapsed * 0.001;
 		} else {
@@ -222,6 +230,7 @@ class BasicWorldDemo {
 		this._totalTime += timeElapsedS;
 		//const v = Math.sin(this._totalTime * 2.0);
 		this._sphere.rotateOnWorldAxis(up, 0.01);
+		this._bouncySphere.rotateOnWorldAxis(up, 0.001);
 		this._biggerSphere.rotation.y = -this._totalTime;
 	}
 }
