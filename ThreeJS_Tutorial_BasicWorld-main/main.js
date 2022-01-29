@@ -22,6 +22,36 @@ void main() {
 }
 `;
 
+const _VSWobble = `
+
+uniform vec3 time;
+
+varying vec3 v_Normal;
+
+void main() {
+	vec3 displacement = vec3(sin(sin(time.y * 1.5 + position.x * 1.5 + position.z * 1.5) * 4.0) * 4.0, sin(time.y * 5.0 + position.y * 50.0 + position.z * 50.0) + 0.5, 0);
+
+	gl_Position = projectionMatrix * modelViewMatrix * vec4(position + displacement, 1.0);
+	v_Normal = normal;
+}
+`;
+
+const _FSWobble = `
+
+varying vec3 v_Normal;
+
+void main() {
+	vec3 scaled = v_Normal * 0.5 + vec3(0.5);
+	float alp = 0.0;
+
+	if (scaled.r <= 0.7 && scaled.r >= 0.3) {
+		alp = 1.0;
+	}
+
+	gl_FragColor = vec4(scaled, alp);
+}
+`;
+
 class BasicWorldDemo {
 	constructor() {
 		this._Initialize();
@@ -129,14 +159,16 @@ class BasicWorldDemo {
 		  }
 		} */
 
+		//boring sphere
 		const s1 = new THREE.Mesh(
-			new THREE.SphereGeometry(2, 32, 32),
+			new THREE.SphereGeometry(2, 64, 64),
 			new THREE.MeshStandardMaterial({ color: 0xFFFFFF })
 		);
 		s1.position.set(-10, 5, 0);
 		s1.castShadow = true;
 		this._scene.add(s1);
 
+		//rotating colorful donut
 		const s2 = new THREE.Mesh(
 			new THREE.TorusGeometry(2, 1, 16, 50),
 			new THREE.ShaderMaterial({
@@ -151,6 +183,7 @@ class BasicWorldDemo {
 		this._scene.add(s2);
 		this._sphere = s2;
 
+		//rotating colorful outer sphere
 		const s3 = new THREE.Mesh(
 			new THREE.SphereGeometry(100, 32, 32),
 			new THREE.ShaderMaterial({
@@ -165,17 +198,24 @@ class BasicWorldDemo {
 		this._scene.add(s3);
 		this._biggerSphere = s3;
 
+		//bounciness
 		const s4 = new THREE.Mesh(
-			new THREE.SphereGeometry(3, 32, 32),
+			new THREE.SphereGeometry(30, 32, 32),
 			new THREE.ShaderMaterial({
-				uniforms: {},
-				vertexShader: _VS,
-				fragmentShader: _FS,
+				uniforms: {
+					time: {
+						value: new THREE.Vector3(0, 0, 0),
+					},
+				},
+				vertexShader: _VSWobble,
+				fragmentShader: _FSWobble,
 			})
 		);
-		s4.position.set(0, 5, 10);
-		s4.castShadow = true;
+		s4.position.set(0, 0, 0);
+		s4.castShadow = false;
 		s4.material.side = THREE.DoubleSide;
+		s4.material.transparent = true;
+		s4.rotation.z = 1.571; //approx. pi/2
 		this._scene.add(s4);
 		this._bouncySphere = s4;
 
@@ -232,6 +272,7 @@ class BasicWorldDemo {
 		this._sphere.rotateOnWorldAxis(up, 0.01);
 		this._bouncySphere.rotateOnWorldAxis(up, 0.001);
 		this._biggerSphere.rotation.y = -this._totalTime;
+		this._bouncySphere.material.uniforms.time.value = new THREE.Vector3(this._totalTime / 20, this._totalTime * 2, this._totalTime * 3);
 	}
 }
 
