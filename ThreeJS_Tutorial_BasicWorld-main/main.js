@@ -52,6 +52,38 @@ void main() {
 }
 `;
 
+const _VSBreathe = `
+
+uniform vec3 time;
+
+varying vec3 v_Normal;
+
+vec3 orthogonal(vec3 v) {
+	return normalize(abs(v.x) > abs(v.z) ? vec3(-v.y, v.x, 0.0)
+	: vec3(0.0, -v.z, v.y));
+}
+
+void main() {
+	vec3 norms = normalize(position) * 4.0;
+	float delta = sin(time.y) * 0.5 + 0.5;
+	vec3 displaced = mix(position, norms, delta);
+
+	gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
+
+	vec3 tangent = orthogonal(normal);
+	vec3 bitangent = normalize(cross(normal, tangent));
+	vec3 neighbor1 = position + tangent * 0.001;
+	vec3 neighbor2 = position + bitangent * 0.001;
+	vec3 displacedNeighbor1 = mix(neighbor1, norms, delta);
+	vec3 displacedNeighbor2 = mix(neighbor2, norms, delta);
+	vec3 displacedTangent = displacedNeighbor1 - displaced;
+	vec3 displacedBitangent = displacedNeighbor2 - displaced;
+	vec3 displacedNormal = normalize(cross(displacedTangent, displacedBitangent));
+	
+	v_Normal = displacedNormal;
+}
+`;
+
 class BasicWorldDemo {
 	constructor() {
 		this._Initialize();
@@ -219,6 +251,24 @@ class BasicWorldDemo {
 		this._scene.add(s4);
 		this._bouncySphere = s4;
 
+		//breathing box
+		const s5 = new THREE.Mesh(
+			new THREE.BoxGeometry(5, 5, 5, 10, 10, 10),
+			new THREE.ShaderMaterial({
+				uniforms: {
+					time: {
+						value: new THREE.Vector3(0, 0, 0),
+					},
+				},
+				vertexShader: _VSBreathe,
+				fragmentShader: _FS,
+			})
+		);
+		s5.position.set(0, 5, 0);
+		s5.castShadow = false;
+		this._scene.add(s5);
+		this._breathingBox = s5;
+
 		// const box = new THREE.Mesh(
 		//   new THREE.SphereGeometry(2, 32, 32),
 		//   new THREE.MeshStandardMaterial({
@@ -272,7 +322,10 @@ class BasicWorldDemo {
 		this._sphere.rotateOnWorldAxis(up, 0.01);
 		this._bouncySphere.rotateOnWorldAxis(up, 0.001);
 		this._biggerSphere.rotation.y = -this._totalTime;
-		this._bouncySphere.material.uniforms.time.value = new THREE.Vector3(this._totalTime / 20, this._totalTime * 2, this._totalTime * 3);
+
+		const time = new THREE.Vector3(this._totalTime / 20, this._totalTime * 2, this._totalTime * 3);
+		this._bouncySphere.material.uniforms.time.value = time;
+		this._breathingBox.material.uniforms.time.value = time;
 	}
 }
 
