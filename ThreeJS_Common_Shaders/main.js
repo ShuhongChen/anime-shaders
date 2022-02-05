@@ -152,7 +152,7 @@ void main() {
 }
 `;
 
-//vertex shader for Phong Shading that just passes vertex normals (default glsl normals)
+//vertex shader for Lambert Shading that just passes vertex normals (default glsl normals)
 const _LambertVS = `
 
 uniform vec3 light_pos;
@@ -162,14 +162,10 @@ varying vec3 v_ViewLightPosition;
 varying vec3 v_ViewLightTargetPosition;
 
 varying vec3 v_NormalInterp;
-varying vec3 v_VertPos;
-
 
 void main() {
-	vec4 vertPos4 = modelViewMatrix * vec4(position, 1.0);
-	v_VertPos = vec3(vertPos4) / vertPos4.w;
+	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 	v_NormalInterp = normalMatrix * normal;
-	gl_Position = projectionMatrix * vertPos4;
 
 	vec4 light_target_mv = modelViewMatrix * vec4(light_target, 1.0);
 	vec4 light_pos_mv = modelViewMatrix * vec4(light_pos, 1.0);
@@ -178,19 +174,16 @@ void main() {
 }
 `;
 
-//fragment shader for Phong Shading that takes in the interpolated normals and displays light diffuse + ambient + specular
+//fragment shader for Lambert Shading that takes in the Phong-interpolated normals and displays light diffuse
 //both light and normals need to be in view space for this to work
 const _LambertFS = `
 
-uniform vec3 diffuse_color;
-uniform vec3 ambient_color;
-uniform vec3 specular_color;
+uniform vec3 light_color;
 
 varying vec3 v_ViewLightPosition;
 varying vec3 v_ViewLightTargetPosition;
 
 varying vec3 v_NormalInterp;
-varying vec3 v_VertPos;
 
 void main() {
 	vec3 scaled = v_NormalInterp * 0.5 + vec3(0.5);
@@ -199,14 +192,7 @@ void main() {
 	vec3 light_direction = normalize(v_ViewLightTargetPosition - v_ViewLightPosition);
 
 	float lambertian = max(dot(-light_direction, normal), 0.0);
-	float specular = 0.0;
-	if (lambertian > 0.0) {
-		vec3 reflection = reflect(light_direction, normal);
-		vec3 viewer = normalize(-v_VertPos);
-		specular = pow(max(dot(reflection, -viewer), 0.0), 70.0);
-	}
-
-	gl_FragColor = vec4(lambertian * diffuse_color + ambient_color + specular * specular_color, 1.0);
+	gl_FragColor = vec4(lambertian * light_color, 1.0);
 }
 `;
 
@@ -366,17 +352,11 @@ class BasicWorldDemo {
 					light_pos: {
 						value: light.position
 					},
-					diffuse_color: {
+					light_color: {
 						value: light.color
 					},
 					light_target: {
 						value: light.target.position
-					},
-					ambient_color: {
-						value: amblight.color
-					},
-					specular_color: {
-						value: new THREE.Color(0xffffff)
 					}
 				},
 				vertexShader: _LambertVS,
