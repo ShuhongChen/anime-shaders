@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.mod
 
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
 
+//vertex shader that passes normals
 const _VS = `
 
 varying vec3 v_Normal;
@@ -12,6 +13,7 @@ void main() {
 }
 `;
 
+//fragment shader that displays normals
 const _FS = `
 
 varying vec3 v_Normal;
@@ -22,35 +24,191 @@ void main() {
 }
 `;
 
+//vertex shader for Flat Shading that takes in light direction and calculates camera view of light and of the mesh
 const _FlatVS = `
 
-varying vec3 v_ViewPosition;
-
-void main() {
-	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-	vec4 mvPosition = modelViewMatrix * vec4(position, 1.0 );
-	v_ViewPosition = - mvPosition.xyz;
-}
-`;
-
-const _FlatFS = `
-
 uniform vec3 light_pos;
-uniform vec3 light_color;
 uniform vec3 light_target;
 
 varying vec3 v_ViewPosition;
+varying vec3 v_ViewLightPosition;
+varying vec3 v_ViewLightTargetPosition;
 
 void main() {
-	vec3 faceNormal = normalize( cross( dFdx( v_ViewPosition ), dFdy( v_ViewPosition ) ) );
+	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+	vec4 mvPosition = modelViewMatrix * vec4(position, 1.0 );
+	vec4 light_target_mv = modelViewMatrix * vec4(light_target, 1.0);
+	vec4 light_pos_mv = modelViewMatrix * vec4(light_pos, 1.0);
+	v_ViewPosition = - mvPosition.xyz;
+	v_ViewLightPosition = - light_pos_mv.xyz;
+	v_ViewLightTargetPosition = - light_target_mv.xyz;
+}
+`;
+
+//fragment shader for Flat Shading that takes in view of light and of the mesh, calculates face normals, a displays light diffuse
+//both light and normals need to be in view space for this to work
+const _FlatFS = `
+
+uniform vec3 light_color;
+
+varying vec3 v_ViewPosition;
+varying vec3 v_ViewLightPosition;
+varying vec3 v_ViewLightTargetPosition;
+
+void main() {
+	vec3 faceNormal = -normalize( cross( dFdx( v_ViewPosition ), dFdy( v_ViewPosition ) ) );
 	vec3 scaled = faceNormal * 0.5 + vec3(0.5);
 
-	vec3 light_direction = normalize(light_target - light_pos);
+	vec3 light_direction = normalize(v_ViewLightTargetPosition - v_ViewLightPosition);
 	gl_FragColor = vec4(max(dot(-light_direction, faceNormal), 0.0) * light_color, 1.0);
 }
 `;
 
-//max(dot(-light_direction, faceNormal), 0.0) * light_color
+//vertex shader for Gouraud Shading that just passes vertex normals (default glsl normals)
+const _GouraudVS = `
+
+varying vec3 v_Normal;
+
+void main() {
+	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+	v_Normal = normal;
+}
+`;
+
+//fragment shader for Gouraud Shading that takes in the normals and displays light diffuse
+//both light and normals need to be in local/world space for this to work
+const _GouraudFS = `
+
+uniform vec3 light_color;
+uniform vec3 light_pos;
+uniform vec3 light_target;
+
+varying vec3 v_Normal;
+
+void main() {
+	vec3 scaled = v_Normal * 0.5 + vec3(0.5);
+
+	vec3 light_direction = normalize(light_target - light_pos);
+	gl_FragColor = vec4(max(dot(-light_direction, v_Normal), 0.0) * light_color, 1.0);
+}
+`;
+
+//vertex shader for Phong Shading that just passes vertex normals (default glsl normals)
+const _PhongVS = `
+
+uniform vec3 light_pos;
+uniform vec3 light_target;
+
+varying vec3 v_ViewLightPosition;
+varying vec3 v_ViewLightTargetPosition;
+
+varying vec3 v_NormalInterp;
+varying vec3 v_VertPos;
+
+
+void main() {
+	vec4 vertPos4 = modelViewMatrix * vec4(position, 1.0);
+	v_VertPos = vec3(vertPos4) / vertPos4.w;
+	v_NormalInterp = normalMatrix * normal;
+	gl_Position = projectionMatrix * vertPos4;
+
+	vec4 light_target_mv = modelViewMatrix * vec4(light_target, 1.0);
+	vec4 light_pos_mv = modelViewMatrix * vec4(light_pos, 1.0);
+	v_ViewLightPosition = - light_pos_mv.xyz;
+	v_ViewLightTargetPosition = - light_target_mv.xyz;
+}
+`;
+
+//fragment shader for Phong Shading that takes in the interpolated normals and displays light diffuse + ambient + specular
+//both light and normals need to be in view space for this to work
+const _PhongFS = `
+
+uniform vec3 diffuse_color;
+uniform vec3 ambient_color;
+uniform vec3 specular_color;
+
+varying vec3 v_ViewLightPosition;
+varying vec3 v_ViewLightTargetPosition;
+
+varying vec3 v_NormalInterp;
+varying vec3 v_VertPos;
+
+void main() {
+	vec3 scaled = v_NormalInterp * 0.5 + vec3(0.5);
+
+	vec3 normal = -normalize(v_NormalInterp);
+	vec3 light_direction = normalize(v_ViewLightTargetPosition - v_ViewLightPosition);
+
+	float lambertian = max(dot(-light_direction, normal), 0.0);
+	float specular = 0.0;
+	if (lambertian > 0.0) {
+		vec3 reflection = reflect(light_direction, normal);
+		vec3 viewer = normalize(-v_VertPos);
+		specular = pow(max(dot(reflection, -viewer), 0.0), 70.0);
+	}
+
+	gl_FragColor = vec4(lambertian * diffuse_color + ambient_color + specular * specular_color, 1.0);
+}
+`;
+
+//vertex shader for Phong Shading that just passes vertex normals (default glsl normals)
+const _LambertVS = `
+
+uniform vec3 light_pos;
+uniform vec3 light_target;
+
+varying vec3 v_ViewLightPosition;
+varying vec3 v_ViewLightTargetPosition;
+
+varying vec3 v_NormalInterp;
+varying vec3 v_VertPos;
+
+
+void main() {
+	vec4 vertPos4 = modelViewMatrix * vec4(position, 1.0);
+	v_VertPos = vec3(vertPos4) / vertPos4.w;
+	v_NormalInterp = normalMatrix * normal;
+	gl_Position = projectionMatrix * vertPos4;
+
+	vec4 light_target_mv = modelViewMatrix * vec4(light_target, 1.0);
+	vec4 light_pos_mv = modelViewMatrix * vec4(light_pos, 1.0);
+	v_ViewLightPosition = - light_pos_mv.xyz;
+	v_ViewLightTargetPosition = - light_target_mv.xyz;
+}
+`;
+
+//fragment shader for Phong Shading that takes in the interpolated normals and displays light diffuse + ambient + specular
+//both light and normals need to be in view space for this to work
+const _LambertFS = `
+
+uniform vec3 diffuse_color;
+uniform vec3 ambient_color;
+uniform vec3 specular_color;
+
+varying vec3 v_ViewLightPosition;
+varying vec3 v_ViewLightTargetPosition;
+
+varying vec3 v_NormalInterp;
+varying vec3 v_VertPos;
+
+void main() {
+	vec3 scaled = v_NormalInterp * 0.5 + vec3(0.5);
+
+	vec3 normal = -normalize(v_NormalInterp);
+	vec3 light_direction = normalize(v_ViewLightTargetPosition - v_ViewLightPosition);
+
+	float lambertian = max(dot(-light_direction, normal), 0.0);
+	float specular = 0.0;
+	if (lambertian > 0.0) {
+		vec3 reflection = reflect(light_direction, normal);
+		vec3 viewer = normalize(-v_VertPos);
+		specular = pow(max(dot(reflection, -viewer), 0.0), 70.0);
+	}
+
+	gl_FragColor = vec4(lambertian * diffuse_color + ambient_color + specular * specular_color, 1.0);
+}
+`;
 
 class BasicWorldDemo {
 	constructor() {
@@ -83,7 +241,7 @@ class BasicWorldDemo {
 		this._scene = new THREE.Scene();
 
 		//create directional light
-		let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
+		let light = new THREE.DirectionalLight(0xffffff, 1.0);
 		light.position.set(20, 100, 10);
 		light.target.position.set(0, 0, 0);
 		light.castShadow = true;
@@ -127,7 +285,7 @@ class BasicWorldDemo {
 
 		//flat shaded sphere
 		const flatShadedSphere = new THREE.Mesh(
-			new THREE.SphereGeometry(4, 32, 32),
+			new THREE.SphereGeometry(3, 16, 16),
 			new THREE.ShaderMaterial({
 				uniforms: {
 					light_pos: {
@@ -144,9 +302,90 @@ class BasicWorldDemo {
 				fragmentShader: _FlatFS,
 			})
 		);
-		flatShadedSphere.position.set(0, 5, 0);
-		flatShadedSphere.castShadow = false;
+		flatShadedSphere.position.set(10, 5, 0);
+		flatShadedSphere.castShadow = true;
 		this._scene.add(flatShadedSphere);
+
+		//gouraud shaded sphere
+		const gouraudShadedSphere = new THREE.Mesh(
+			new THREE.SphereGeometry(3, 16, 16),
+			new THREE.ShaderMaterial({
+				uniforms: {
+					light_pos: {
+						value: light.position
+					},
+					light_color: {
+						value: light.color
+					},
+					light_target: {
+						value: light.target.position
+					}
+				},
+				vertexShader: _GouraudVS,
+				fragmentShader: _GouraudFS,
+			})
+		);
+		gouraudShadedSphere.position.set(-10, 5, 0);
+		gouraudShadedSphere.castShadow = true;
+		this._scene.add(gouraudShadedSphere);
+
+		//phong shaded sphere
+		const phongShadedSphere = new THREE.Mesh(
+			new THREE.SphereGeometry(3, 16, 16),
+			new THREE.ShaderMaterial({
+				uniforms: {
+					light_pos: {
+						value: light.position
+					},
+					diffuse_color: {
+						value: light.color
+					},
+					light_target: {
+						value: light.target.position
+					},
+					ambient_color: {
+						value: amblight.color
+					},
+					specular_color: {
+						value: new THREE.Color(0xffffff)
+					}
+				},
+				vertexShader: _PhongVS,
+				fragmentShader: _PhongFS,
+			})
+		);
+		phongShadedSphere.position.set(0, 5, 10);
+		phongShadedSphere.castShadow = true;
+		this._scene.add(phongShadedSphere);
+
+		//lambert shaded sphere
+		const lambertShadedSphere = new THREE.Mesh(
+			new THREE.SphereGeometry(3, 16, 16),
+			new THREE.ShaderMaterial({
+				uniforms: {
+					light_pos: {
+						value: light.position
+					},
+					diffuse_color: {
+						value: light.color
+					},
+					light_target: {
+						value: light.target.position
+					},
+					ambient_color: {
+						value: amblight.color
+					},
+					specular_color: {
+						value: new THREE.Color(0xffffff)
+					}
+				},
+				vertexShader: _LambertVS,
+				fragmentShader: _LambertFS,
+			})
+		);
+		lambertShadedSphere.position.set(0, 5, -10);
+		lambertShadedSphere.castShadow = true;
+		this._scene.add(lambertShadedSphere);
 
 		this._totalTime = 0.0;
 
