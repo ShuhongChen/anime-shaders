@@ -202,8 +202,25 @@ class BasicWorldDemo {
 	}
 
 	_Initialize() {
+		
+		//create save image link
+		var saveLink = document.createElement('div');
+        saveLink.style.position = 'absolute';
+        saveLink.style.top = '10px';
+        saveLink.style.width = '100%';
+        saveLink.style.background = 'none';
+        saveLink.style.textAlign = 'center';
+        saveLink.innerHTML =
+            '<a href="#" style="color: red;" id="saveLink">Save Frame</a>';
+        document.body.appendChild(saveLink);
+        document.getElementById("saveLink").addEventListener('click', () => {
+			this._SaveAsImage();
+		});
+
+		//create threejs renderer
 		this._threejs = new THREE.WebGLRenderer({
 			antialias: true,
+			preserveDrawingBuffer: true,
 		});
 		this._threejs.shadowMap.enabled = true;
 		this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -372,12 +389,14 @@ class BasicWorldDemo {
 		this._RAF();
 	}
 
+	//event handler that handles when the window resizes
 	_OnWindowResize() {
 		this._camera.aspect = window.innerWidth / window.innerHeight;
 		this._camera.updateProjectionMatrix();
 		this._threejs.setSize(window.innerWidth, window.innerHeight);
 	}
 
+	//renderer that renders each and every frame
 	_RAF() {
 		requestAnimationFrame((t) => {
 			if (this._previousRAF === null) {
@@ -391,6 +410,37 @@ class BasicWorldDemo {
 			this._previousRAF = t;
 		});
 	}
+
+	//event handler that handles when the save image link is clicked
+	_SaveAsImage() {
+		var imgData, imgNode;
+
+		try {
+			var strMime = 'image/png';
+			var strDownloadMime = "image/octet-stream";
+			imgData = this._threejs.domElement.toDataURL(strMime);
+
+			this._SaveFile(imgData.replace(strMime, strDownloadMime), "test.png");
+		} catch (e) {
+			console.log(this._threejs);
+			console.log(e);
+			return;
+		}
+	}
+
+	//saves the jpeg of the currect view
+	_SaveFile = function (strData, filename) {
+        var link = document.createElement('a');
+        if (typeof link.download === 'string') {
+            document.body.appendChild(link); //Firefox requires the link to be in the body
+            link.download = filename;
+            link.href = strData;
+            link.click();
+            document.body.removeChild(link); //remove the link when done
+        } else {
+            location.replace(uri);
+        }
+    }
 
 	//at each frame, this runs
 	_Step(timeElapsed) {
