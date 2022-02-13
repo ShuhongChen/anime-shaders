@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
 
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
+import { STLLoader } from 'https://cdn.jsdelivr.net/npm/three@0.120.1/examples/jsm/loaders/STLLoader.js';
 
 //vertex shader that passes normals
 const _VS = `
@@ -286,7 +287,8 @@ class BasicWorldDemo {
 		plane.rotation.x = -Math.PI / 2;
 		this._scene.add(plane);
 
-		let flatShader = {
+		//my shaders
+		let myFlatShader = new THREE.ShaderMaterial({
 			uniforms: {
 				light_pos: {
 					value: light.position
@@ -300,36 +302,9 @@ class BasicWorldDemo {
 			},
 			vertexShader: _FlatVS,
 			fragmentShader: _FlatFS,
-		}
+		});
 
-		//flat shaded sphere
-		const flatShadedSphere = new THREE.Mesh(
-			new THREE.SphereGeometry(3, 16, 16),
-			new THREE.ShaderMaterial(flatShader)
-		);
-		flatShadedSphere.position.set(-40, 5, 40);
-		flatShadedSphere.castShadow = true;
-		this._scene.add(flatShadedSphere);
-
-		//flat shaded torus
-		const flatShadedTorus = new THREE.Mesh(
-			new THREE.TorusGeometry(2, 1, 16, 50),
-			new THREE.ShaderMaterial(flatShader)
-		);
-		flatShadedTorus.position.set(-30, 5, 40);
-		flatShadedTorus.castShadow = true;
-		this._scene.add(flatShadedTorus);
-
-		//flat shaded torus knot
-		const flatShadedTorusKnot = new THREE.Mesh(
-			new THREE.TorusKnotGeometry(2, 0.6, 100, 16),
-			new THREE.ShaderMaterial(flatShader)
-		);
-		flatShadedTorusKnot.position.set(-20, 5, 40);
-		flatShadedTorusKnot.castShadow = true;
-		this._scene.add(flatShadedTorusKnot);
-
-		let gouraudShader = {
+		let myGouraudShader = new THREE.ShaderMaterial({
 			uniforms: {
 				light_pos: {
 					value: light.position
@@ -343,36 +318,9 @@ class BasicWorldDemo {
 			},
 			vertexShader: _GouraudVS,
 			fragmentShader: _GouraudFS,
-		}
+		});
 
-		//gouraud shaded sphere
-		const gouraudShadedSphere = new THREE.Mesh(
-			new THREE.SphereGeometry(3, 16, 16),
-			new THREE.ShaderMaterial(gouraudShader)
-		);
-		gouraudShadedSphere.position.set(-40, 5, 20);
-		gouraudShadedSphere.castShadow = true;
-		this._scene.add(gouraudShadedSphere);
-
-		//gouraud shaded torus
-		const gouraudShadedTorus = new THREE.Mesh(
-			new THREE.TorusGeometry(2, 1, 16, 50),
-			new THREE.ShaderMaterial(gouraudShader)
-		);
-		gouraudShadedTorus.position.set(-30, 5, 20);
-		gouraudShadedTorus.castShadow = true;
-		this._scene.add(gouraudShadedTorus);
-
-		//gauraud shaded torus knot
-		const gouraudShadedTorusKnot = new THREE.Mesh(
-			new THREE.TorusKnotGeometry(2, 0.6, 100, 16),
-			new THREE.ShaderMaterial(gouraudShader)
-		);
-		gouraudShadedTorusKnot.position.set(-20, 5, 20);
-		gouraudShadedTorusKnot.castShadow = true;
-		this._scene.add(gouraudShadedTorusKnot);
-
-		let phongShader = {
+		let myPhongShader = new THREE.ShaderMaterial({
 			uniforms: {
 				light_pos: {
 					value: light.position
@@ -392,36 +340,9 @@ class BasicWorldDemo {
 			},
 			vertexShader: _PhongVS,
 			fragmentShader: _PhongFS,
-		}
+		});
 
-		//phong shaded sphere
-		const phongShadedSphere = new THREE.Mesh(
-			new THREE.SphereGeometry(3, 16, 16),
-			new THREE.ShaderMaterial(phongShader)
-		);
-		phongShadedSphere.position.set(-40, 5, 0);
-		phongShadedSphere.castShadow = true;
-		this._scene.add(phongShadedSphere);
-
-		//phong shaded torus
-		const phongShadedTorus = new THREE.Mesh(
-			new THREE.TorusGeometry(2, 1, 16, 50),
-			new THREE.ShaderMaterial(phongShader)
-		);
-		phongShadedTorus.position.set(-30, 5, 0);
-		phongShadedTorus.castShadow = true;
-		this._scene.add(phongShadedTorus);
-
-		//phong shaded torus knot
-		const phongShadedTorusKnot = new THREE.Mesh(
-			new THREE.TorusKnotGeometry(2, 0.6, 100, 16),
-			new THREE.ShaderMaterial(phongShader)
-		);
-		phongShadedTorusKnot.position.set(-20, 5, 0);
-		phongShadedTorusKnot.castShadow = true;
-		this._scene.add(phongShadedTorusKnot);
-
-		let lambertShader = {
+		let myLambertShader = new THREE.ShaderMaterial({
 			uniforms: {
 				light_pos: {
 					value: light.position
@@ -435,34 +356,230 @@ class BasicWorldDemo {
 			},
 			vertexShader: _LambertVS,
 			fragmentShader: _LambertFS,
-		}
+		});
+
+		//threejs shaders
+		let threeFlat = new THREE.MeshPhongMaterial({
+			flatShading: true,
+			specular: new THREE.Color(0x000000),
+			aoMapIntensity: 1.0
+		});
+		let threeGouraud = new THREE.MeshLambertMaterial({
+			aoMapIntensity: 1.0,
+		});
+		let threePhong = new THREE.MeshPhongMaterial({
+			specular: new THREE.Color(0xffffff),
+		});
+		let threeLambert = new THREE.MeshPhongMaterial({
+			specular: new THREE.Color(0x000000),
+			shininess: 70.0,
+			aoMapIntensity: 1.0
+		});
+
+		//geometries
+		let sphere = new THREE.SphereGeometry(3, 16, 16);
+		let torus = new THREE.TorusGeometry(2, 1, 16, 50);
+		let torusKnot = new THREE.TorusKnotGeometry(2, 0.6, 100, 16);
+		let ajax = undefined;
+
+		const loader = new STLLoader();
+		loader.load(
+    		'models/ajax.stl',
+    		function (geometry) {
+        		ajax = geometry
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		/**
+		 * My Flat Shader
+		 */
+
+		//flat shaded sphere
+		const sph1 = new THREE.Mesh(sphere, myFlatShader);
+		sph1.position.set(-40, 5, 40);
+		sph1.castShadow = true;
+		this._scene.add(sph1);
+
+		//flat shaded torus
+		const tor1 = new THREE.Mesh(torus, myFlatShader);
+		tor1.position.set(-30, 5, 40);
+		tor1.castShadow = true;
+		this._scene.add(tor1);
+
+		//flat shaded torus knot
+		const tk1 = new THREE.Mesh(torusKnot, myFlatShader);
+		tk1.position.set(-20, 5, 40);
+		tk1.castShadow = true;
+		this._scene.add(tk1);
+
+		//flat shaded ajax
+		const aj1 = new THREE.Mesh(ajax, myFlatShader);
+		aj1.material.side = THREE.DoubleSide;
+		aj1.position.set(-10, 5, 40);
+		aj1.castShadow = true;
+		this._scene.add(aj1);
+
+		/**
+		 * My Gouraud Shader
+		 */
+
+		//gouraud shaded sphere
+		const sph2 = new THREE.Mesh(sphere, myGouraudShader);
+		sph2.position.set(-40, 5, 20);
+		sph2.castShadow = true;
+		this._scene.add(sph2);
+
+		//gouraud shaded torus
+		const tor2 = new THREE.Mesh(torus, myGouraudShader);
+		tor2.position.set(-30, 5, 20);
+		tor2.castShadow = true;
+		this._scene.add(tor2);
+
+		//gouraud shaded torus knot
+		const tk2 = new THREE.Mesh(torusKnot, myGouraudShader);
+		tk2.position.set(-20, 5, 20);
+		tk2.castShadow = true;
+		this._scene.add(tk2);
+
+		/**
+		 * My Phong Shader
+		 */
+
+		//phong shaded sphere
+		const sph3 = new THREE.Mesh(sphere, myPhongShader);
+		sph3.position.set(-40, 5, 0);
+		sph3.castShadow = true;
+		this._scene.add(sph3);
+
+		//phong shaded torus
+		const tor3 = new THREE.Mesh(torus, myPhongShader);
+		tor3.position.set(-30, 5, 0);
+		tor3.castShadow = true;
+		this._scene.add(tor3);
+
+		//phong shaded torus knot
+		const tk3 = new THREE.Mesh(torusKnot, myPhongShader);
+		tk3.position.set(-20, 5, 0);
+		tk3.castShadow = true;
+		this._scene.add(tk3);
+
+		/**
+		 * My Lambert Shader
+		 */
 
 		//lambert shaded sphere
-		const lambertShadedSphere = new THREE.Mesh(
-			new THREE.SphereGeometry(3, 16, 16),
-			new THREE.ShaderMaterial(lambertShader)
-		);
-		lambertShadedSphere.position.set(-40, 5, -20);
-		lambertShadedSphere.castShadow = true;
-		this._scene.add(lambertShadedSphere);
+		const sph4 = new THREE.Mesh(sphere, myLambertShader);
+		sph4.position.set(-40, 5, -20);
+		sph4.castShadow = true;
+		this._scene.add(sph4);
 
 		//lambert shaded torus
-		const lambertShadedTorus = new THREE.Mesh(
-			new THREE.TorusGeometry(2, 1, 16, 50),
-			new THREE.ShaderMaterial(lambertShader)
-		);
-		lambertShadedTorus.position.set(-30, 5, -20);
-		lambertShadedTorus.castShadow = true;
-		this._scene.add(lambertShadedTorus);
+		const tor4 = new THREE.Mesh(torus, myLambertShader);
+		tor4.position.set(-30, 5, -20);
+		tor4.castShadow = true;
+		this._scene.add(tor4);
 
 		//lambert shaded torus knot
-		const lambertShadedTorusKnot = new THREE.Mesh(
-			new THREE.TorusKnotGeometry(2, 0.6, 100, 16),
-			new THREE.ShaderMaterial(lambertShader)
-		);
-		lambertShadedTorusKnot.position.set(-20, 5, -20);
-		lambertShadedTorusKnot.castShadow = true;
-		this._scene.add(lambertShadedTorusKnot);
+		const tk4 = new THREE.Mesh(torusKnot, myLambertShader);
+		tk4.position.set(-20, 5, -20);
+		tk4.castShadow = true;
+		this._scene.add(tk4);
+
+
+
+		/**
+		 * Threejs Flat Shader
+		 */
+
+		//flat shaded sphere
+		const sph5 = new THREE.Mesh(sphere, threeFlat);
+		sph5.position.set(-40, 5, 30);
+		sph5.castShadow = true;
+		this._scene.add(sph5);
+
+		//flat shaded torus
+		const tor5 = new THREE.Mesh(torus, threeFlat);
+		tor5.position.set(-30, 5, 30);
+		tor5.castShadow = true;
+		this._scene.add(tor5);
+
+		//flat shaded torus knot
+		const tk5 = new THREE.Mesh(torusKnot, threeFlat);
+		tk5.position.set(-20, 5, 30);
+		tk5.castShadow = true;
+		this._scene.add(tk5);
+
+		/**
+		 * Threejs Gouraud Shader
+		 */
+
+		//gouraud shaded sphere
+		const sph6 = new THREE.Mesh(sphere, threeGouraud);
+		sph6.position.set(-40, 5, 10);
+		sph6.castShadow = true;
+		this._scene.add(sph6);
+
+		//gouraud shaded torus
+		const tor6 = new THREE.Mesh(torus, threeGouraud);
+		tor6.position.set(-30, 5, 10);
+		tor6.castShadow = true;
+		this._scene.add(tor6);
+
+		//gouraud shaded torus knot
+		const tk6 = new THREE.Mesh(torusKnot, threeGouraud);
+		tk6.position.set(-20, 5, 10);
+		tk6.castShadow = true;
+		this._scene.add(tk6);
+
+		/**
+		 * Threejs Phong Shader
+		 */
+
+		//phong shaded sphere
+		const sph7 = new THREE.Mesh(sphere, threePhong);
+		sph7.position.set(-40, 5, -10);
+		sph7.castShadow = true;
+		this._scene.add(sph7);
+
+		//phong shaded torus
+		const tor7 = new THREE.Mesh(torus, threePhong);
+		tor7.position.set(-30, 5, -10);
+		tor7.castShadow = true;
+		this._scene.add(tor7);
+
+		//phong shaded torus knot
+		const tk7 = new THREE.Mesh(torusKnot, threePhong);
+		tk7.position.set(-20, 5, -10);
+		tk7.castShadow = true;
+		this._scene.add(tk7);
+
+		/**
+		 * Threejs Lambert Shader
+		 */
+
+		//lambert shaded sphere
+		const sph8 = new THREE.Mesh(sphere, threeLambert);
+		sph8.position.set(-40, 5, -30);
+		sph8.castShadow = true;
+		this._scene.add(sph8);
+
+		//lambert shaded torus
+		const tor8 = new THREE.Mesh(torus, threeLambert);
+		tor8.position.set(-30, 5, -30);
+		tor8.castShadow = true;
+		this._scene.add(tor8);
+
+		//lambert shaded torus knot
+		const tk8 = new THREE.Mesh(torusKnot, threeLambert);
+		tk8.position.set(-20, 5, -30);
+		tk8.castShadow = true;
+		this._scene.add(tk8);
 
 		this._totalTime = 0.0;
 
