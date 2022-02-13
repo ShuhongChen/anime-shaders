@@ -427,6 +427,46 @@ class BasicWorldDemo {
     		}
 		)
 
+		//flat shaded suzanne
+		loader.load(
+    		'models/Suzanne.stl',
+    		function (geometry) {
+        		var suz = new THREE.Mesh(geometry, myFlatShader);
+				suz.position.set(0, 5, 40);
+				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				suz.scale.set(3, 3, 3);
+				suz.castShadow = true;
+				scene.add(suz);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		//flat shaded teapot
+		loader.load(
+    		'models/Utah_teapot.stl',
+    		function (geometry) {
+        		var tea = new THREE.Mesh(geometry, myFlatShader);
+				tea.position.set(10, 3, 40);
+				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				tea.scale.set(0.5, 0.5, 0.5);
+				tea.castShadow = true;
+				scene.add(tea);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
 		/**
 		 * My Gouraud Shader
 		 */
@@ -459,6 +499,46 @@ class BasicWorldDemo {
 				ajax.scale.set(0.05, 0.05, 0.05);
 				ajax.castShadow = true;
 				scene.add(ajax);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		//gouraud shaded suzanne
+		loader.load(
+    		'models/Suzanne.stl',
+    		function (geometry) {
+        		var suz = new THREE.Mesh(geometry, myGouraudShader);
+				suz.position.set(0, 5, 20);
+				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				suz.scale.set(3, 3, 3);
+				suz.castShadow = true;
+				scene.add(suz);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		//gouraud shaded teapot
+		loader.load(
+    		'models/Utah_teapot.stl',
+    		function (geometry) {
+        		var tea = new THREE.Mesh(geometry, myGouraudShader);
+				tea.position.set(10, 3, 20);
+				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				tea.scale.set(0.5, 0.5, 0.5);
+				tea.castShadow = true;
+				scene.add(tea);
     		},
     		(xhr) => {
         		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
@@ -509,6 +589,46 @@ class BasicWorldDemo {
     		}
 		)
 
+		//phong shaded suzanne
+		loader.load(
+    		'models/Suzanne.stl',
+    		function (geometry) {
+        		var suz = new THREE.Mesh(geometry, myPhongShader);
+				suz.position.set(0, 5, 0);
+				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				suz.scale.set(3, 3, 3);
+				suz.castShadow = true;
+				scene.add(suz);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		//phong shaded teapot
+		loader.load(
+    		'models/Utah_teapot.stl',
+    		function (geometry) {
+        		var tea = new THREE.Mesh(geometry, myPhongShader);
+				tea.position.set(10, 3, 0);
+				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				tea.scale.set(0.5, 0.5, 0.5);
+				tea.castShadow = true;
+				scene.add(tea);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
 		/**
 		 * My Lambert Shader
 		 */
@@ -541,6 +661,46 @@ class BasicWorldDemo {
 				ajax.scale.set(0.05, 0.05, 0.05);
 				ajax.castShadow = true;
 				scene.add(ajax);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		//lambert shaded suzanne
+		loader.load(
+    		'models/Suzanne.stl',
+    		function (geometry) {
+        		var suz = new THREE.Mesh(geometry, myLambertShader);
+				suz.position.set(0, 5, -20);
+				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				suz.scale.set(3, 3, 3);
+				suz.castShadow = true;
+				scene.add(suz);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		//lambert shaded teapot
+		loader.load(
+    		'models/Utah_teapot.stl',
+    		function (geometry) {
+        		var tea = new THREE.Mesh(geometry, myLambertShader);
+				tea.position.set(10, 3, -20);
+				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				tea.scale.set(0.5, 0.5, 0.5);
+				tea.castShadow = true;
+				scene.add(tea);
     		},
     		(xhr) => {
         		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
@@ -591,6 +751,46 @@ class BasicWorldDemo {
     		}
 		)
 
+		//flat shaded suzanne
+		loader.load(
+    		'models/Suzanne.stl',
+    		function (geometry) {
+        		var suz = new THREE.Mesh(geometry, threeFlat);
+				suz.position.set(0, 5, 30);
+				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				suz.scale.set(3, 3, 3);
+				suz.castShadow = true;
+				scene.add(suz);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		//flat shaded teapot
+		loader.load(
+    		'models/Utah_teapot.stl',
+    		function (geometry) {
+        		var tea = new THREE.Mesh(geometry, threeFlat);
+				tea.position.set(10, 3, 30);
+				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				tea.scale.set(0.5, 0.5, 0.5);
+				tea.castShadow = true;
+				scene.add(tea);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
 		/**
 		 * Threejs Gouraud Shader
 		 */
@@ -623,6 +823,46 @@ class BasicWorldDemo {
 				ajax.scale.set(0.05, 0.05, 0.05);
 				ajax.castShadow = true;
 				scene.add(ajax);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		//gouraud shaded suzanne
+		loader.load(
+    		'models/Suzanne.stl',
+    		function (geometry) {
+        		var suz = new THREE.Mesh(geometry, threeGouraud);
+				suz.position.set(0, 5, 10);
+				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				suz.scale.set(3, 3, 3);
+				suz.castShadow = true;
+				scene.add(suz);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		//gouraud shaded teapot
+		loader.load(
+    		'models/Utah_teapot.stl',
+    		function (geometry) {
+        		var tea = new THREE.Mesh(geometry, threeGouraud);
+				tea.position.set(10, 3, 10);
+				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				tea.scale.set(0.5, 0.5, 0.5);
+				tea.castShadow = true;
+				scene.add(tea);
     		},
     		(xhr) => {
         		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
@@ -673,6 +913,46 @@ class BasicWorldDemo {
     		}
 		)
 
+		//phong shaded suzanne
+		loader.load(
+    		'models/Suzanne.stl',
+    		function (geometry) {
+        		var suz = new THREE.Mesh(geometry, threePhong);
+				suz.position.set(0, 5, -10);
+				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				suz.scale.set(3, 3, 3);
+				suz.castShadow = true;
+				scene.add(suz);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		//phong shaded teapot
+		loader.load(
+    		'models/Utah_teapot.stl',
+    		function (geometry) {
+        		var tea = new THREE.Mesh(geometry, threePhong);
+				tea.position.set(10, 3, -10);
+				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				tea.scale.set(0.5, 0.5, 0.5);
+				tea.castShadow = true;
+				scene.add(tea);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
 		/**
 		 * Threejs Lambert Shader
 		 */
@@ -713,6 +993,48 @@ class BasicWorldDemo {
         		console.log(error)
     		}
 		)
+
+		//lambert shaded suzanne
+		loader.load(
+    		'models/Suzanne.stl',
+    		function (geometry) {
+        		var suz = new THREE.Mesh(geometry, threeLambert);
+				suz.position.set(0, 5, -30);
+				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				suz.scale.set(3, 3, 3);
+				suz.castShadow = true;
+				scene.add(suz);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+		//lambert shaded teapot
+		loader.load(
+    		'models/Utah_teapot.stl',
+    		function (geometry) {
+        		var tea = new THREE.Mesh(geometry, threeLambert);
+				tea.position.set(10, 3, -30);
+				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				tea.scale.set(0.5, 0.5, 0.5);
+				tea.castShadow = true;
+				scene.add(tea);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
+
 
 		this._totalTime = 0.0;
 
