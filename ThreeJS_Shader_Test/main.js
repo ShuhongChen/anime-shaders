@@ -39,8 +39,8 @@ void main() {
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 
 	vec4 mvPosition = modelViewMatrix * vec4(position, 1.0 );
-	vec4 light_target_mv = modelViewMatrix * vec4(light_target, 1.0);
-	vec4 light_pos_mv = modelViewMatrix * vec4(light_pos, 1.0);
+	vec4 light_target_mv = viewMatrix * vec4(light_target, 1.0);
+	vec4 light_pos_mv = viewMatrix * vec4(light_pos, 1.0);
 	v_ViewPosition = - mvPosition.xyz;
 	v_ViewLightPosition = - light_pos_mv.xyz;
 	v_ViewLightTargetPosition = - light_target_mv.xyz;
@@ -73,12 +73,14 @@ varying vec3 v_Normal;
 
 void main() {
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-	v_Normal = normal;
+	
+	vec4 normal_mv = inverse(transpose(modelMatrix)) * vec4(normal, 0.0);
+	v_Normal = normalize(normal_mv.xyz);
 }
 `;
 
 //fragment shader for Gouraud Shading that takes in the normals and displays light diffuse
-//both light and normals need to be in local/world space for this to work
+//both light and normals need to be in world space for this to work
 const _GouraudFS = `
 
 uniform vec3 light_color;
@@ -114,8 +116,8 @@ void main() {
 	v_NormalInterp = normalMatrix * normal;
 	gl_Position = projectionMatrix * vertPos4;
 
-	vec4 light_target_mv = modelViewMatrix * vec4(light_target, 1.0);
-	vec4 light_pos_mv = modelViewMatrix * vec4(light_pos, 1.0);
+	vec4 light_target_mv = viewMatrix * vec4(light_target, 1.0);
+	vec4 light_pos_mv = viewMatrix * vec4(light_pos, 1.0);
 	v_ViewLightPosition = - light_pos_mv.xyz;
 	v_ViewLightTargetPosition = - light_target_mv.xyz;
 }
@@ -168,8 +170,8 @@ void main() {
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 	v_NormalInterp = normalMatrix * normal;
 
-	vec4 light_target_mv = modelViewMatrix * vec4(light_target, 1.0);
-	vec4 light_pos_mv = modelViewMatrix * vec4(light_pos, 1.0);
+	vec4 light_target_mv = viewMatrix * vec4(light_target, 1.0);
+	vec4 light_pos_mv = viewMatrix * vec4(light_pos, 1.0);
 	v_ViewLightPosition = - light_pos_mv.xyz;
 	v_ViewLightTargetPosition = - light_target_mv.xyz;
 }
@@ -291,13 +293,13 @@ class BasicWorldDemo {
 		let myFlatShader = new THREE.ShaderMaterial({
 			uniforms: {
 				light_pos: {
-					value: light.position
+					value: light.getWorldPosition()
 				},
 				light_color: {
 					value: light.color
 				},
 				light_target: {
-					value: light.target.position
+					value: light.target.getWorldPosition()
 				}
 			},
 			vertexShader: _FlatVS,
@@ -307,13 +309,13 @@ class BasicWorldDemo {
 		let myGouraudShader = new THREE.ShaderMaterial({
 			uniforms: {
 				light_pos: {
-					value: light.position
+					value: light.getWorldPosition()
 				},
 				light_color: {
 					value: light.color
 				},
 				light_target: {
-					value: light.target.position
+					value: light.target.getWorldPosition()
 				}
 			},
 			vertexShader: _GouraudVS,
@@ -323,13 +325,13 @@ class BasicWorldDemo {
 		let myPhongShader = new THREE.ShaderMaterial({
 			uniforms: {
 				light_pos: {
-					value: light.position
+					value: light.getWorldPosition()
 				},
 				diffuse_color: {
 					value: light.color
 				},
 				light_target: {
-					value: light.target.position
+					value: light.target.getWorldPosition()
 				},
 				ambient_color: {
 					value: amblight.color
@@ -345,13 +347,13 @@ class BasicWorldDemo {
 		let myLambertShader = new THREE.ShaderMaterial({
 			uniforms: {
 				light_pos: {
-					value: light.position
+					value: light.getWorldPosition()
 				},
 				light_color: {
 					value: light.color
 				},
 				light_target: {
-					value: light.target.position
+					value: light.target.getWorldPosition()
 				}
 			},
 			vertexShader: _LambertVS,
@@ -380,21 +382,9 @@ class BasicWorldDemo {
 		let sphere = new THREE.SphereGeometry(3, 16, 16);
 		let torus = new THREE.TorusGeometry(2, 1, 16, 50);
 		let torusKnot = new THREE.TorusKnotGeometry(2, 0.6, 100, 16);
-		let ajax = undefined;
 
 		const loader = new STLLoader();
-		loader.load(
-    		'models/ajax.stl',
-    		function (geometry) {
-        		ajax = geometry
-    		},
-    		(xhr) => {
-        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
-    		},
-    		(error) => {
-        		console.log(error)
-    		}
-		)
+		const scene = this._scene;
 
 		/**
 		 * My Flat Shader
@@ -419,11 +409,23 @@ class BasicWorldDemo {
 		this._scene.add(tk1);
 
 		//flat shaded ajax
-		const aj1 = new THREE.Mesh(ajax, myFlatShader);
-		aj1.material.side = THREE.DoubleSide;
-		aj1.position.set(-10, 5, 40);
-		aj1.castShadow = true;
-		this._scene.add(aj1);
+		loader.load(
+    		'models/ajax.stl',
+    		function (geometry) {
+        		var ajax = new THREE.Mesh(geometry, myFlatShader);
+				ajax.position.set(-10, 2, 42.5);
+				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				ajax.scale.set(0.05, 0.05, 0.05);
+				ajax.castShadow = true;
+				scene.add(ajax);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
 
 		/**
 		 * My Gouraud Shader
@@ -447,6 +449,25 @@ class BasicWorldDemo {
 		tk2.castShadow = true;
 		this._scene.add(tk2);
 
+		//gouraud shaded ajax
+		loader.load(
+    		'models/ajax.stl',
+    		function (geometry) {
+        		var ajax = new THREE.Mesh(geometry, myGouraudShader);
+				ajax.position.set(-10, 2, 22.5);
+				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				ajax.scale.set(0.05, 0.05, 0.05);
+				ajax.castShadow = true;
+				scene.add(ajax);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
 		/**
 		 * My Phong Shader
 		 */
@@ -468,6 +489,25 @@ class BasicWorldDemo {
 		tk3.position.set(-20, 5, 0);
 		tk3.castShadow = true;
 		this._scene.add(tk3);
+
+		//phong shaded ajax
+		loader.load(
+    		'models/ajax.stl',
+    		function (geometry) {
+        		var ajax = new THREE.Mesh(geometry, myPhongShader);
+				ajax.position.set(-10, 2, 2.5);
+				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				ajax.scale.set(0.05, 0.05, 0.05);
+				ajax.castShadow = true;
+				scene.add(ajax);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
 
 		/**
 		 * My Lambert Shader
@@ -491,7 +531,24 @@ class BasicWorldDemo {
 		tk4.castShadow = true;
 		this._scene.add(tk4);
 
-
+		//lambert shaded ajax
+		loader.load(
+    		'models/ajax.stl',
+    		function (geometry) {
+        		var ajax = new THREE.Mesh(geometry, myLambertShader);
+				ajax.position.set(-10, 2, -17.5);
+				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				ajax.scale.set(0.05, 0.05, 0.05);
+				ajax.castShadow = true;
+				scene.add(ajax);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
 
 		/**
 		 * Threejs Flat Shader
@@ -515,6 +572,25 @@ class BasicWorldDemo {
 		tk5.castShadow = true;
 		this._scene.add(tk5);
 
+		//flat shaded ajax
+		loader.load(
+    		'models/ajax.stl',
+    		function (geometry) {
+        		var ajax = new THREE.Mesh(geometry, threeFlat);
+				ajax.position.set(-10, 2, 32.5);
+				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				ajax.scale.set(0.05, 0.05, 0.05);
+				ajax.castShadow = true;
+				scene.add(ajax);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
 		/**
 		 * Threejs Gouraud Shader
 		 */
@@ -536,6 +612,25 @@ class BasicWorldDemo {
 		tk6.position.set(-20, 5, 10);
 		tk6.castShadow = true;
 		this._scene.add(tk6);
+
+		//gouraud shaded ajax
+		loader.load(
+    		'models/ajax.stl',
+    		function (geometry) {
+        		var ajax = new THREE.Mesh(geometry, threeGouraud);
+				ajax.position.set(-10, 2, 12.5);
+				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				ajax.scale.set(0.05, 0.05, 0.05);
+				ajax.castShadow = true;
+				scene.add(ajax);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
 
 		/**
 		 * Threejs Phong Shader
@@ -559,6 +654,25 @@ class BasicWorldDemo {
 		tk7.castShadow = true;
 		this._scene.add(tk7);
 
+		//phong shaded ajax
+		loader.load(
+    		'models/ajax.stl',
+    		function (geometry) {
+        		var ajax = new THREE.Mesh(geometry, threePhong);
+				ajax.position.set(-10, 2, -7.5);
+				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				ajax.scale.set(0.05, 0.05, 0.05);
+				ajax.castShadow = true;
+				scene.add(ajax);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
+
 		/**
 		 * Threejs Lambert Shader
 		 */
@@ -580,6 +694,25 @@ class BasicWorldDemo {
 		tk8.position.set(-20, 5, -30);
 		tk8.castShadow = true;
 		this._scene.add(tk8);
+
+		//lambert shaded ajax
+		loader.load(
+    		'models/ajax.stl',
+    		function (geometry) {
+        		var ajax = new THREE.Mesh(geometry, threeLambert);
+				ajax.position.set(-10, 2, -27.5);
+				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+				ajax.scale.set(0.05, 0.05, 0.05);
+				ajax.castShadow = true;
+				scene.add(ajax);
+    		},
+    		(xhr) => {
+        		console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    		},
+    		(error) => {
+        		console.log(error)
+    		}
+		)
 
 		this._totalTime = 0.0;
 
