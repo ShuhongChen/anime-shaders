@@ -383,6 +383,47 @@ class BasicWorldDemo {
 		let torus = new THREE.TorusGeometry(2, 1, 16, 50);
 		let torusKnot = new THREE.TorusKnotGeometry(2, 0.6, 100, 16);
 
+		//helper to manually calculate vertices and faces for STLLoaded models
+		let manualVertices = function (object) {
+			object.computeBoundingBox();
+            object.computeVertexNormals();
+
+		   	var attrib = object.getAttribute('position');
+            if(attrib === undefined) {
+                throw new Error('a given BufferGeometry object must have a position attribute.');
+            }
+            var positions = attrib.array;
+            var vertices = [];
+
+			//manually put in the xyz coordinates for each vertex
+            for(var i = 0, n = positions.length; i < n; i += 3) {
+                var x = positions[i];
+                var y = positions[i + 1];
+                var z = positions[i + 2];
+                vertices.push(new THREE.Vector3(x, y, z));
+            }
+
+            var faces = [];
+
+			//for each group of three vertices, create a face for them
+            for(var i = 0, n = vertices.length; i < n; i += 3) {
+                faces.push(new THREE.Face3(i, i + 1, i + 2));
+            }
+
+			//merges duplicate vertices, allowing faces to share vertices
+			var geometry = new THREE.Geometry();
+            geometry.vertices = vertices;
+            geometry.faces = faces;
+            geometry.computeFaceNormals();              
+            geometry.mergeVertices()
+            geometry.computeVertexNormals();
+
+			var toReturn = new THREE.BufferGeometry();
+			toReturn.fromGeometry(geometry);
+
+			return toReturn;
+		}
+
 		const loader = new STLLoader();
 		const scene = this._scene;
 
@@ -412,7 +453,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/ajax.stl',
     		function (geometry) {
-        		var ajax = new THREE.Mesh(geometry, myFlatShader);
+        		var ajax = new THREE.Mesh(manualVertices(geometry), myFlatShader);
 				ajax.position.set(-10, 2, 42.5);
 				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
 				ajax.scale.set(0.05, 0.05, 0.05);
@@ -431,7 +472,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Suzanne.stl',
     		function (geometry) {
-        		var suz = new THREE.Mesh(geometry, myFlatShader);
+        		var suz = new THREE.Mesh(manualVertices(geometry), myFlatShader);
 				suz.position.set(0, 5, 40);
 				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -451,7 +492,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Utah_teapot.stl',
     		function (geometry) {
-        		var tea = new THREE.Mesh(geometry, myFlatShader);
+        		var tea = new THREE.Mesh(manualVertices(geometry), myFlatShader);
 				tea.position.set(10, 3, 40);
 				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -493,7 +534,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/ajax.stl',
     		function (geometry) {
-        		var ajax = new THREE.Mesh(geometry, myGouraudShader);
+        		var ajax = new THREE.Mesh(manualVertices(geometry), myGouraudShader);
 				ajax.position.set(-10, 2, 22.5);
 				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
 				ajax.scale.set(0.05, 0.05, 0.05);
@@ -512,7 +553,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Suzanne.stl',
     		function (geometry) {
-        		var suz = new THREE.Mesh(geometry, myGouraudShader);
+        		var suz = new THREE.Mesh(manualVertices(geometry), myGouraudShader);
 				suz.position.set(0, 5, 20);
 				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -532,7 +573,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Utah_teapot.stl',
     		function (geometry) {
-        		var tea = new THREE.Mesh(geometry, myGouraudShader);
+        		var tea = new THREE.Mesh(manualVertices(geometry), myGouraudShader);
 				tea.position.set(10, 3, 20);
 				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -574,7 +615,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/ajax.stl',
     		function (geometry) {
-        		var ajax = new THREE.Mesh(geometry, myPhongShader);
+        		var ajax = new THREE.Mesh(manualVertices(geometry), myPhongShader);
 				ajax.position.set(-10, 2, 2.5);
 				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
 				ajax.scale.set(0.05, 0.05, 0.05);
@@ -593,7 +634,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Suzanne.stl',
     		function (geometry) {
-        		var suz = new THREE.Mesh(geometry, myPhongShader);
+        		var suz = new THREE.Mesh(manualVertices(geometry), myPhongShader);
 				suz.position.set(0, 5, 0);
 				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -613,7 +654,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Utah_teapot.stl',
     		function (geometry) {
-        		var tea = new THREE.Mesh(geometry, myPhongShader);
+        		var tea = new THREE.Mesh(manualVertices(geometry), myPhongShader);
 				tea.position.set(10, 3, 0);
 				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -655,7 +696,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/ajax.stl',
     		function (geometry) {
-        		var ajax = new THREE.Mesh(geometry, myLambertShader);
+        		var ajax = new THREE.Mesh(manualVertices(geometry), myLambertShader);
 				ajax.position.set(-10, 2, -17.5);
 				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
 				ajax.scale.set(0.05, 0.05, 0.05);
@@ -674,7 +715,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Suzanne.stl',
     		function (geometry) {
-        		var suz = new THREE.Mesh(geometry, myLambertShader);
+        		var suz = new THREE.Mesh(manualVertices(geometry), myLambertShader);
 				suz.position.set(0, 5, -20);
 				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -694,7 +735,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Utah_teapot.stl',
     		function (geometry) {
-        		var tea = new THREE.Mesh(geometry, myLambertShader);
+        		var tea = new THREE.Mesh(manualVertices(geometry), myLambertShader);
 				tea.position.set(10, 3, -20);
 				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -736,7 +777,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/ajax.stl',
     		function (geometry) {
-        		var ajax = new THREE.Mesh(geometry, threeFlat);
+        		var ajax = new THREE.Mesh(manualVertices(geometry), threeFlat);
 				ajax.position.set(-10, 2, 32.5);
 				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
 				ajax.scale.set(0.05, 0.05, 0.05);
@@ -755,7 +796,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Suzanne.stl',
     		function (geometry) {
-        		var suz = new THREE.Mesh(geometry, threeFlat);
+        		var suz = new THREE.Mesh(manualVertices(geometry), threeFlat);
 				suz.position.set(0, 5, 30);
 				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -775,7 +816,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Utah_teapot.stl',
     		function (geometry) {
-        		var tea = new THREE.Mesh(geometry, threeFlat);
+        		var tea = new THREE.Mesh(manualVertices(geometry), threeFlat);
 				tea.position.set(10, 3, 30);
 				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -817,7 +858,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/ajax.stl',
     		function (geometry) {
-        		var ajax = new THREE.Mesh(geometry, threeGouraud);
+        		var ajax = new THREE.Mesh(manualVertices(geometry), threeGouraud);
 				ajax.position.set(-10, 2, 12.5);
 				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
 				ajax.scale.set(0.05, 0.05, 0.05);
@@ -836,7 +877,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Suzanne.stl',
     		function (geometry) {
-        		var suz = new THREE.Mesh(geometry, threeGouraud);
+        		var suz = new THREE.Mesh(manualVertices(geometry), threeGouraud);
 				suz.position.set(0, 5, 10);
 				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -856,7 +897,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Utah_teapot.stl',
     		function (geometry) {
-        		var tea = new THREE.Mesh(geometry, threeGouraud);
+        		var tea = new THREE.Mesh(manualVertices(geometry), threeGouraud);
 				tea.position.set(10, 3, 10);
 				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -898,7 +939,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/ajax.stl',
     		function (geometry) {
-        		var ajax = new THREE.Mesh(geometry, threePhong);
+        		var ajax = new THREE.Mesh(manualVertices(geometry), threePhong);
 				ajax.position.set(-10, 2, -7.5);
 				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
 				ajax.scale.set(0.05, 0.05, 0.05);
@@ -917,7 +958,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Suzanne.stl',
     		function (geometry) {
-        		var suz = new THREE.Mesh(geometry, threePhong);
+        		var suz = new THREE.Mesh(manualVertices(geometry), threePhong);
 				suz.position.set(0, 5, -10);
 				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -937,7 +978,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Utah_teapot.stl',
     		function (geometry) {
-        		var tea = new THREE.Mesh(geometry, threePhong);
+        		var tea = new THREE.Mesh(manualVertices(geometry), threePhong);
 				tea.position.set(10, 3, -10);
 				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -979,7 +1020,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/ajax.stl',
     		function (geometry) {
-        		var ajax = new THREE.Mesh(geometry, threeLambert);
+        		var ajax = new THREE.Mesh(manualVertices(geometry), threeLambert);
 				ajax.position.set(-10, 2, -27.5);
 				ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
 				ajax.scale.set(0.05, 0.05, 0.05);
@@ -998,7 +1039,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Suzanne.stl',
     		function (geometry) {
-        		var suz = new THREE.Mesh(geometry, threeLambert);
+        		var suz = new THREE.Mesh(manualVertices(geometry), threeLambert);
 				suz.position.set(0, 5, -30);
 				suz.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				suz.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
@@ -1018,7 +1059,7 @@ class BasicWorldDemo {
 		loader.load(
     		'models/Utah_teapot.stl',
     		function (geometry) {
-        		var tea = new THREE.Mesh(geometry, threeLambert);
+        		var tea = new THREE.Mesh(manualVertices(geometry), threeLambert);
 				tea.position.set(10, 3, -30);
 				tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 				tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
