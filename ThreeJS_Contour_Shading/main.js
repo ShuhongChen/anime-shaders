@@ -157,7 +157,7 @@ void main() {
 
 	float contour = dot(viewer, normal);
 
-	if ((contour <= 0.2 && contour > 0.0)) {
+	if ((contour <= 0.1 && contour >= 0.0)) {
 		gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
 	} else {
 		if (strength > 0.8) {
@@ -198,10 +198,21 @@ void main() {
 	float strength = dot(-light_direction, normal) * 0.5 + 0.5;
 
 	float contour = dot(viewer, normal);
+
+	// Compute curvature
+  	vec3 dx = dFdx(v_NormalInterp);
+  	vec3 dy = dFdy(v_NormalInterp);
+  	vec3 xneg = v_NormalInterp - dx;
+  	vec3 xpos = v_NormalInterp + dx;
+  	vec3 yneg = v_NormalInterp - dy;
+  	vec3 ypos = v_NormalInterp + dy;
+  	float depth = length(v_VertPos);
+  	float curvature = (cross(xneg, xpos).y - cross(yneg, ypos).x) * 4.0 / depth;
+	
 	float suggx = dFdx(contour);
 	float suggy = dFdy(contour);
 
-	if ((contour <= 0.2 && contour > 0.0) || (suggx <= 0.2 && suggx >= 0.0 && dFdx(suggx) > 0.0) || (suggy <= 0.2 && suggy >= 0.0 && dFdy(suggy) > 0.0)) {
+	if ((contour <= 0.1 && contour >= 0.0) || (curvature >= -0.0001 && curvature <= 0.0001 && dFdx(curvature) > 0.0)) {
 		gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
 	} else {
 		if (strength > 0.8) {
