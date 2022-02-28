@@ -157,8 +157,8 @@ void main() {
 
 	float contour = dot(viewer, normal);
 
-	if (contour == 0.0) {
-		gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+	if ((contour <= 0.2 && contour > 0.0)) {
+		gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
 	} else {
 		if (strength > 0.8) {
 			gl_FragColor = vec4(diffuse_color + ambient_color, 1.0);
@@ -201,8 +201,8 @@ void main() {
 	float suggx = dFdx(contour);
 	float suggy = dFdy(contour);
 
-	if (contour == 0.0 || (suggx == 0.0 && dFdx(suggx) > 0.0) || (suggy == 0.0 && dFdy(suggy) > 0.0)) {
-		gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+	if ((contour <= 0.2 && contour > 0.0) || (suggx <= 0.2 && suggx >= 0.0 && dFdx(suggx) > 0.0) || (suggy <= 0.2 && suggy >= 0.0 && dFdy(suggy) > 0.0)) {
+		gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
 	} else {
 		if (strength > 0.8) {
 			gl_FragColor = vec4(diffuse_color + ambient_color, 1.0);
