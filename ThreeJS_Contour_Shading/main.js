@@ -199,36 +199,36 @@ void main() {
 
 	float contour = dot(viewer, normal);
 
-	// Compute curvature
-  	vec3 dx = dFdx(v_NormalInterp);
-  	vec3 dy = dFdy(v_NormalInterp);
-  	vec3 xneg = v_NormalInterp - dx;
-  	vec3 xpos = v_NormalInterp + dx;
-  	vec3 yneg = v_NormalInterp - dy;
-  	vec3 ypos = v_NormalInterp + dy;
-  	float depth = length(v_VertPos);
-  	float curvature = (cross(xneg, xpos).y - cross(yneg, ypos).x) * 4.0 / depth;
-	
-	float suggx = dFdx(contour);
-	float suggy = dFdy(contour);
+	// Compute derivative of dot(viewer, normal)
+  	vec3 dx = -normalize(dFdx(v_NormalInterp));
+  	vec3 dy = -normalize(dFdy(v_NormalInterp));
+	vec3 vdx = normalize(-dFdx(v_VertPos));
+	vec3 vdy = normalize(-dFdy(v_VertPos));
+	vec3 normalXNeighbor = normal + dx;
+	vec3 normalYNeighbor = normal + dy;
+	vec3 viewXNeighbor = viewer + vdx;
+	vec3 viewYNeighbor = viewer + vdy;
+	float contourdx = dot(viewXNeighbor, normalXNeighbor) - contour;
+	float contourdy = dot(viewYNeighbor, normalYNeighbor) - contour;
 
-	if ((contour <= 0.1 && contour >= 0.0) || (curvature >= -0.0001 && curvature <= 0.0001 && dFdx(curvature) > 0.0)) {
+	if ((contour <= 0.1 && contour >= 0.0) || (contourdx >= 0.0 && contourdx <= 0.001) || (contourdy >= 0.0 && contourdy <= 0.001)) {
 		gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
 	} else {
 		if (strength > 0.8) {
-			gl_FragColor = vec4(diffuse_color + ambient_color, 1.0);
+			gl_FragColor = vec4(diffuse_color + ambient_color, 0.0);
 		} else if (strength > 0.6) {
-			gl_FragColor = vec4((diffuse_color * vec3(0.75)) + ambient_color, 1.0);
+			gl_FragColor = vec4((diffuse_color * vec3(0.75)) + ambient_color, 0.0);
 		} else if (strength > 0.4) {
-			gl_FragColor = vec4((diffuse_color * vec3(0.5)) + ambient_color, 1.0);
+			gl_FragColor = vec4((diffuse_color * vec3(0.5)) + ambient_color, 0.0);
 		} else if (strength > 0.2) {
-			gl_FragColor = vec4((diffuse_color * vec3(0.25)) + ambient_color, 1.0);
+			gl_FragColor = vec4((diffuse_color * vec3(0.25)) + ambient_color, 0.0);
 		} else {
-			gl_FragColor = vec4((diffuse_color * vec3(0.0)) + ambient_color, 1.0);
+			gl_FragColor = vec4((diffuse_color * vec3(0.0)) + ambient_color, 0.0);
 		}
 	}
 }
 `;
+//be sure to change all of the alpha values to 1 to actually see the cel shading
 
 class BasicWorldDemo {
 	constructor() {
@@ -273,7 +273,7 @@ class BasicWorldDemo {
 		const near = 1.0;
 		const far = 1000.0;
 		this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-		this._camera.position.set(12, 12, 12);
+		this._camera.position.set(10, 2, 5);
 
 		this._scene = new THREE.Scene();
 
@@ -389,6 +389,7 @@ class BasicWorldDemo {
 			vertexShader: _CelVS,
 			fragmentShader: _SuggestiveFS,
 		});
+		mySuggestiveShader.transparent = true;
 
 		//threejs shaders
 		let threeToon = new THREE.MeshToonMaterial({
@@ -466,7 +467,7 @@ class BasicWorldDemo {
 		}
 
 		//determines which mesh to put on the scene
-		//1 = sphere, 2 = torus, 3 = torusKnot, 4 = Suzanne, 0 = Utah Teapot
+		//1 = sphere, 2 = torus, 3 = torusKnot, 4 = Suzanne, 5 = Ajax bust, 0 = Utah Teapot
 		const shapeOption = 4;
 
 		//add mesh to the scene based off what shapeOption is chosen
@@ -500,6 +501,25 @@ class BasicWorldDemo {
 						suz.scale.set(3, 3, 3);
 						suz.castShadow = true;
 						scene.add(suz);
+					},
+					(xhr) => {
+						console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+					},
+					(error) => {
+						console.log(error)
+					}
+				)
+				break;
+			case 5:
+				loader.load(
+					'models/ajax.stl',
+					function (geometry) {
+						var ajax = new THREE.Mesh(manualVertices(geometry), shader);
+						ajax.position.set(0, 2, 2.5);
+						ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+						ajax.scale.set(0.05, 0.05, 0.05);
+						ajax.castShadow = true;
+						scene.add(ajax);
 					},
 					(xhr) => {
 						console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
