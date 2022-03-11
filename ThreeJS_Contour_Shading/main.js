@@ -157,19 +157,19 @@ void main() {
 
 	float contour = dot(viewer, normal);
 
-	if ((contour <= 0.1 && contour >= 0.0)) {
+	if ((contour <= 0.1 && contour >= -0.1)) {
 		gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
 	} else {
 		if (strength > 0.8) {
-			gl_FragColor = vec4(diffuse_color + ambient_color, 1.0);
+			gl_FragColor = vec4(diffuse_color + ambient_color, 0.0);
 		} else if (strength > 0.6) {
-			gl_FragColor = vec4((diffuse_color * vec3(0.75)) + ambient_color, 1.0);
+			gl_FragColor = vec4((diffuse_color * vec3(0.75)) + ambient_color, 0.0);
 		} else if (strength > 0.4) {
-			gl_FragColor = vec4((diffuse_color * vec3(0.5)) + ambient_color, 1.0);
+			gl_FragColor = vec4((diffuse_color * vec3(0.5)) + ambient_color, 0.0);
 		} else if (strength > 0.2) {
-			gl_FragColor = vec4((diffuse_color * vec3(0.25)) + ambient_color, 1.0);
+			gl_FragColor = vec4((diffuse_color * vec3(0.25)) + ambient_color, 0.0);
 		} else {
-			gl_FragColor = vec4((diffuse_color * vec3(0.0)) + ambient_color, 1.0);
+			gl_FragColor = vec4((diffuse_color * vec3(0.0)) + ambient_color, 0.0);
 		}
 	}
 }
@@ -200,18 +200,34 @@ void main() {
 	float contour = dot(viewer, normal);
 
 	// Compute derivative of dot(viewer, normal)
-  	vec3 dx = -normalize(dFdx(v_NormalInterp));
-  	vec3 dy = -normalize(dFdy(v_NormalInterp));
-	vec3 vdx = normalize(-dFdx(v_VertPos));
-	vec3 vdy = normalize(-dFdy(v_VertPos));
-	vec3 normalXNeighbor = normal + dx;
-	vec3 normalYNeighbor = normal + dy;
-	vec3 viewXNeighbor = viewer + vdx;
-	vec3 viewYNeighbor = viewer + vdy;
-	float contourdx = dot(viewXNeighbor, normalXNeighbor) - contour;
-	float contourdy = dot(viewYNeighbor, normalYNeighbor) - contour;
+  	vec3 ndx = -dFdx(v_NormalInterp);
+  	vec3 ndy = -dFdy(v_NormalInterp);
+	vec3 vdx = -dFdx(v_VertPos);
+	vec3 vdy = -dFdy(v_VertPos);
+	float contourdx = dot(ndx, viewer) + dot(normal, vdx);
+	float contourdy = dot(ndy, viewer) + dot(normal, vdy);
+	vec2 dcontour = vec2(contourdx, contourdy);
+	float contourdw = dot(dcontour, dcontour);
 
-	if ((contour <= 0.1 && contour >= 0.0) || (contourdx >= 0.0 && contourdx <= 0.001) || (contourdy >= 0.0 && contourdy <= 0.001)) {
+	// Compute 2nd derivative of dot(viewer, normal)
+	vec3 ndxx = -dFdx(dFdx(v_NormalInterp));
+  	vec3 ndyx = -dFdy(dFdx(v_NormalInterp));
+	vec3 ndxy = -dFdx(dFdy(v_NormalInterp));
+  	vec3 ndyy = -dFdy(dFdy(v_NormalInterp));
+	vec3 vdxx = -dFdx(dFdx(v_VertPos));
+	vec3 vdyx = -dFdy(dFdx(v_VertPos));
+	vec3 vdxy = -dFdx(dFdy(v_VertPos));
+	vec3 vdyy = -dFdy(dFdy(v_VertPos));
+	float contourdxx = dot(ndxx, viewer) + (2.0 * dot(ndx, vdx)) + dot(normal, vdxx);
+	float contourdyx = dot(ndyx, viewer) + (2.0 * dot(ndy, vdy)) + dot(normal, vdyx);
+	float contourdxy = dot(ndxy, viewer) + (2.0 * dot(ndx, vdx)) + dot(normal, vdxy);
+	float contourdyy = dot(ndyy, viewer) + (2.0 * dot(ndy, vdy)) + dot(normal, vdyy);
+	mat2 ddcontour;
+	ddcontour[0] = vec2(contourdxx, contourdyx);
+	ddcontour[1] = vec2(contourdxy, contourdyy);
+	float contourdww = dot(ddcontour[0], ddcontour[0]) + dot(ddcontour[1], ddcontour[1]);
+
+	if (contourdw >= 0.0 && contourdw <= 0.001 && contourdww > 0.0) {
 		gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
 	} else {
 		if (strength > 0.8) {
@@ -370,6 +386,7 @@ class BasicWorldDemo {
 			vertexShader: _CelVS,
 			fragmentShader: _ContourFS,
 		});
+		myContourShader.transparent = true;
 
 		let mySuggestiveShader = new THREE.ShaderMaterial({
 			uniforms: {
@@ -448,7 +465,7 @@ class BasicWorldDemo {
 		var shader;
 
 		//determines which shader to apply on the mesh
-		//0 = myCelShader, 1 = threeToon
+		//0 = threeToon, 1 = cel shading, 2 = show contours, 3 = show suggestive contours
 		const shaderOption = 3;
 
 		switch (shaderOption) {
@@ -467,8 +484,8 @@ class BasicWorldDemo {
 		}
 
 		//determines which mesh to put on the scene
-		//1 = sphere, 2 = torus, 3 = torusKnot, 4 = Suzanne, 5 = Ajax bust, 0 = Utah Teapot
-		const shapeOption = 4;
+		//1 = sphere, 2 = torus, 3 = torusKnot, 4 = Suzanne, 5 = Ajax bust, 6 = Stanford Lucy, 0 = Utah Teapot
+		const shapeOption = 5;
 
 		//add mesh to the scene based off what shapeOption is chosen
 		switch (shapeOption) {
@@ -517,6 +534,27 @@ class BasicWorldDemo {
 						var ajax = new THREE.Mesh(manualVertices(geometry), shader);
 						ajax.position.set(0, 2, 2.5);
 						ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+						ajax.scale.set(0.05, 0.05, 0.05);
+						ajax.castShadow = true;
+						scene.add(ajax);
+					},
+					(xhr) => {
+						console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+					},
+					(error) => {
+						console.log(error)
+					}
+				)
+				break;
+			case 6:
+				loader.load(
+					'models/lucy.stl',
+					function (geometry) {
+						var ajax = new THREE.Mesh(manualVertices(geometry), shader);
+						ajax.position.set(0, 2, -2);
+						ajax.rotateOnAxis(new THREE.Vector3(0,1,0), -1.571);
+						ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+						
 						ajax.scale.set(0.05, 0.05, 0.05);
 						ajax.castShadow = true;
 						scene.add(ajax);
