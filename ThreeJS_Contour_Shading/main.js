@@ -219,8 +219,8 @@ void main() {
 	vec3 vdxy = -dFdx(dFdy(v_VertPos));
 	vec3 vdyy = -dFdy(dFdy(v_VertPos));
 	float contourdxx = dot(ndxx, viewer) + (2.0 * dot(ndx, vdx)) + dot(normal, vdxx);
-	float contourdyx = dot(ndyx, viewer) + (2.0 * dot(ndy, vdy)) + dot(normal, vdyx);
-	float contourdxy = dot(ndxy, viewer) + (2.0 * dot(ndx, vdx)) + dot(normal, vdxy);
+	float contourdyx = dot(ndyx, viewer) + dot(ndy, vdx) + dot(ndx, vdy) + dot(normal, vdyx);
+	float contourdxy = dot(ndxy, viewer) + dot(ndx, vdy) + dot(ndy, vdx) + dot(normal, vdxy);
 	float contourdyy = dot(ndyy, viewer) + (2.0 * dot(ndy, vdy)) + dot(normal, vdyy);
 	mat2 ddcontour;
 	ddcontour[0] = vec2(contourdxx, contourdyx);
