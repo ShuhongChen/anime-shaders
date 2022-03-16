@@ -165,7 +165,7 @@ void main() {
 		} else if (strength > 0.6) {
 			gl_FragColor = vec4((diffuse_color * vec3(0.75)) + ambient_color, 0.0);
 		} else if (strength > 0.4) {
-			gl_FragColor = vec4((diffuse_color * vec3(0.5)) + ambient_color, 0.0);
+			gl_FragColor = vec4((diffuse_color * vec3(0.5)) + ambient_color, 1.0);
 		} else if (strength > 0.2) {
 			gl_FragColor = vec4((diffuse_color * vec3(0.25)) + ambient_color, 0.0);
 		} else {
@@ -211,12 +211,12 @@ void main() {
 
 	// Compute 2nd derivative of dot(viewer, normal)
 	vec3 ndxx = -dFdx(dFdx(v_NormalInterp));
-  	vec3 ndyx = -dFdy(dFdx(v_NormalInterp));
-	vec3 ndxy = -dFdx(dFdy(v_NormalInterp));
+  	vec3 ndyx = -dFdx(dFdy(v_NormalInterp));
+	vec3 ndxy = -dFdy(dFdx(v_NormalInterp));
   	vec3 ndyy = -dFdy(dFdy(v_NormalInterp));
 	vec3 vdxx = -dFdx(dFdx(v_VertPos));
-	vec3 vdyx = -dFdy(dFdx(v_VertPos));
-	vec3 vdxy = -dFdx(dFdy(v_VertPos));
+	vec3 vdyx = -dFdx(dFdy(v_VertPos));
+	vec3 vdxy = -dFdy(dFdx(v_VertPos));
 	vec3 vdyy = -dFdy(dFdy(v_VertPos));
 	float contourdxx = dot(ndxx, viewer) + (2.0 * dot(ndx, vdx)) + dot(normal, vdxx);
 	float contourdyx = dot(ndyx, viewer) + dot(ndy, vdx) + dot(ndx, vdy) + dot(normal, vdyx);
@@ -334,7 +334,7 @@ class BasicWorldDemo {
 		plane.castShadow = false;
 		plane.receiveShadow = true;
 		plane.rotation.x = -Math.PI / 2;
-		this._scene.add(plane);
+		//this._scene.add(plane);
 
 		const threeTone = new THREE.TextureLoader().load('gradientMaps/threeTone.jpg');
 		threeTone.minFilter = THREE.NearestFilter;
@@ -466,7 +466,7 @@ class BasicWorldDemo {
 
 		//determines which shader to apply on the mesh
 		//0 = threeToon, 1 = cel shading, 2 = show contours, 3 = show suggestive contours
-		const shaderOption = 3;
+		const shaderOption = 2;
 
 		switch (shaderOption) {
 			case 0:
@@ -485,7 +485,7 @@ class BasicWorldDemo {
 
 		//determines which mesh to put on the scene
 		//1 = sphere, 2 = torus, 3 = torusKnot, 4 = Suzanne, 5 = Ajax bust, 6 = Stanford Lucy, 0 = Utah Teapot
-		const shapeOption = 5;
+		const shapeOption = 6;
 
 		//add mesh to the scene based off what shapeOption is chosen
 		switch (shapeOption) {
@@ -554,7 +554,6 @@ class BasicWorldDemo {
 						ajax.position.set(0, 2, -2);
 						ajax.rotateOnAxis(new THREE.Vector3(0,1,0), -1.571);
 						ajax.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
-						
 						ajax.scale.set(0.05, 0.05, 0.05);
 						ajax.castShadow = true;
 						scene.add(ajax);
