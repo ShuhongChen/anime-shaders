@@ -165,7 +165,7 @@ void main() {
 		} else if (strength > 0.6) {
 			gl_FragColor = vec4((diffuse_color * vec3(0.75)) + ambient_color, 0.0);
 		} else if (strength > 0.4) {
-			gl_FragColor = vec4((diffuse_color * vec3(0.5)) + ambient_color, 1.0);
+			gl_FragColor = vec4((diffuse_color * vec3(0.5)) + ambient_color, 0.0);
 		} else if (strength > 0.2) {
 			gl_FragColor = vec4((diffuse_color * vec3(0.25)) + ambient_color, 0.0);
 		} else {
@@ -334,7 +334,7 @@ class BasicWorldDemo {
 		plane.castShadow = false;
 		plane.receiveShadow = true;
 		plane.rotation.x = -Math.PI / 2;
-		//this._scene.add(plane);
+		this._scene.add(plane);
 
 		const threeTone = new THREE.TextureLoader().load('gradientMaps/threeTone.jpg');
 		threeTone.minFilter = THREE.NearestFilter;
@@ -466,7 +466,7 @@ class BasicWorldDemo {
 
 		//determines which shader to apply on the mesh
 		//0 = threeToon, 1 = cel shading, 2 = show contours, 3 = show suggestive contours
-		const shaderOption = 2;
+		const shaderOption = 3;
 
 		switch (shaderOption) {
 			case 0:
@@ -485,7 +485,7 @@ class BasicWorldDemo {
 
 		//determines which mesh to put on the scene
 		//1 = sphere, 2 = torus, 3 = torusKnot, 4 = Suzanne, 5 = Ajax bust, 6 = Stanford Lucy, 0 = Utah Teapot
-		const shapeOption = 6;
+		const shapeOption = 5;
 
 		//add mesh to the scene based off what shapeOption is chosen
 		switch (shapeOption) {
