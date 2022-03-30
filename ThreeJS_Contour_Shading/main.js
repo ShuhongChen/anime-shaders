@@ -262,7 +262,7 @@ const _TestFS = `
 varying float v_xpos;
 
 void main() {
-	float xslope = dFdx(2 * v_xpos);
+	float xslope = dFdx(2.0 * v_xpos);
 	gl_FragColor = vec4(xslope, 0.0, 0.0, 1.0);
 }
 `;
