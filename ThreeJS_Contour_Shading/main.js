@@ -249,20 +249,24 @@ void main() {
 const _TestVS = `
 
 varying float v_xpos;
+varying float v_ypos;
 
 void main() {
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 	vec4 worldPos = modelViewMatrix * vec4(position, 1.0);
 	v_xpos = worldPos.x;
+	v_ypos = worldPos.y;
 }
 `;
 
 const _TestFS = `
 
 varying float v_xpos;
+varying float v_ypos;
 
 void main() {
-	float xslope = dFdx(2.0 * v_xpos);
+	vec2 vals = vec2(v_xpos, v_ypos);
+	float xslope = dFdx(dot(vals, vals));
 	gl_FragColor = vec4(xslope, 0.0, 0.0, 1.0);
 }
 `;
