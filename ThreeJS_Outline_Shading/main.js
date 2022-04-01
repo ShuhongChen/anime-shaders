@@ -88,7 +88,7 @@ void main() {
 }
 `;
 
-//vertex shader that passes normals
+//vertex shader that takes in an offset and dialates each vertex along its normal by that offset to create a bigger shape
 const _OutlineVS = `
 
 uniform float offset;
@@ -98,7 +98,7 @@ void main() {
 }
 `;
 
-//fragment shader that displays normals
+//fragment shader that displays the new shape in a cyan color, intended to be drawn under a shape to give it a silhouette
 const _OutlineFS = `
 
 void main() {
