@@ -194,40 +194,34 @@ void main() {
 	vec3 normal = -normalize(v_NormalInterp);
 	vec3 light_direction = normalize(v_ViewLightTargetPosition - v_ViewLightPosition);
 	vec3 viewer = normalize(-v_VertPos);
+	vec3 n = (viewMatrix * vec4(normal, 1.0)).xyz;
+	vec3 v = (viewMatrix * vec4(viewer, 1.0)).xyz;
 
 	float strength = dot(-light_direction, normal) * 0.5 + 0.5;
 
 	float contour = dot(viewer, normal);
 
-	// Compute derivative of dot(viewer, normal)
+	// Compute w, the projection of the view vector onto the tangent plane of the surface, must be in view space
+	vec3 w = (viewMatrix * vec4(normalize(viewer - (contour * normal)), 1.0)).xyz;
+
+	// Compute directional derivative of dot(viewer, normal) with respect to w
   	vec3 ndx = -dFdx(v_NormalInterp);
   	vec3 ndy = -dFdy(v_NormalInterp);
 	vec3 vdx = -dFdx(v_VertPos);
 	vec3 vdy = -dFdy(v_VertPos);
-	float contourdx = dot(ndx, viewer) + dot(normal, vdx);
-	float contourdy = dot(ndy, viewer) + dot(normal, vdy);
-	vec2 dcontour = vec2(contourdx, contourdy);
-	float contourdw = dot(dcontour, dcontour);
+	float contourdx = dot(ndx, v) + dot(n, vdx);
+	float contourdy = dot(ndy, v) + dot(n, vdy);
+	vec3 dcontour = vec3(contourdx, contourdy, 0.0);
+	float contourdw = dot(dcontour, w);
 
 	// Compute 2nd derivative of dot(viewer, normal)
-	vec3 ndxx = -dFdx(dFdx(v_NormalInterp));
-  	vec3 ndyx = -dFdx(dFdy(v_NormalInterp));
-	vec3 ndxy = -dFdy(dFdx(v_NormalInterp));
-  	vec3 ndyy = -dFdy(dFdy(v_NormalInterp));
-	vec3 vdxx = -dFdx(dFdx(v_VertPos));
-	vec3 vdyx = -dFdx(dFdy(v_VertPos));
-	vec3 vdxy = -dFdy(dFdx(v_VertPos));
-	vec3 vdyy = -dFdy(dFdy(v_VertPos));
-	float contourdxx = dot(ndxx, viewer) + (2.0 * dot(ndx, vdx)) + dot(normal, vdxx);
-	float contourdyx = dot(ndyx, viewer) + dot(ndy, vdx) + dot(ndx, vdy) + dot(normal, vdyx);
-	float contourdxy = dot(ndxy, viewer) + dot(ndx, vdy) + dot(ndy, vdx) + dot(normal, vdxy);
-	float contourdyy = dot(ndyy, viewer) + (2.0 * dot(ndy, vdy)) + dot(normal, vdyy);
-	mat2 ddcontour;
-	ddcontour[0] = vec2(contourdxx, contourdyx);
-	ddcontour[1] = vec2(contourdxy, contourdyy);
-	float contourdww = dot(ddcontour[0], ddcontour[0]) + dot(ddcontour[1], ddcontour[1]);
+	float contourdxx = 2.0 * dot(ndx, vdx);
+	float contourdyx = dot(ndy, vdx) + dot(ndx, vdy);
+	float contourdxy = dot(ndx, vdy) + dot(ndy, vdx);
+	float contourdyy = 2.0 * dot(ndy, vdy);
+	float contourdww = contourdxx * w.x * w.x + contourdyx * contourdxy * w.x * w.y + contourdyy * w.y * w.y;
 
-	if (contourdw >= 0.0 && contourdw <= 0.001 && contourdww > 0.0) {
+	if (contourdw >= -0.001 && contourdw <= 0.001 && contourdww > 0.0) {
 		gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
 	} else {
 		if (strength > 0.8) {
@@ -245,31 +239,6 @@ void main() {
 }
 `;
 //be sure to change all of the alpha values to 1 to actually see the cel shading
-
-const _TestVS = `
-
-varying float v_xpos;
-varying float v_ypos;
-
-void main() {
-	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-	vec4 worldPos = modelViewMatrix * vec4(position, 1.0);
-	v_xpos = worldPos.x;
-	v_ypos = worldPos.y;
-}
-`;
-
-const _TestFS = `
-
-varying float v_xpos;
-varying float v_ypos;
-
-void main() {
-	vec2 vals = vec2(v_xpos, v_ypos);
-	float xslope = dFdx(dot(vals, vals));
-	gl_FragColor = vec4(xslope, 0.0, 0.0, 1.0);
-}
-`;
 
 class BasicWorldDemo {
 	constructor() {
@@ -313,8 +282,8 @@ class BasicWorldDemo {
 		const aspect = 1920 / 1080;
 		const near = 1.0;
 		const far = 1000.0;
-		//this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-		this._camera = new THREE.OrthographicCamera(-500,500,500, -500, 0.0, far);
+		this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+		//this._camera = new THREE.OrthographicCamera(-500,500,500, -500, 0.0, far);
 		this._camera.position.set(10, 2, 5);
 
 		this._scene = new THREE.Scene();
@@ -354,10 +323,8 @@ class BasicWorldDemo {
 		//create a plane to hold our objects on top
 		const plane = new THREE.Mesh(
 			new THREE.PlaneGeometry(100, 100, 10, 10),
-			new THREE.ShaderMaterial({
-				uniforms: {},
-				vertexShader: _TestVS,
-				fragmentShader: _TestFS,
+			new THREE.MeshStandardMaterial({
+				color: 0xFFFFFF,
 			})
 		);
 		plane.castShadow = false;
@@ -514,7 +481,7 @@ class BasicWorldDemo {
 
 		//determines which mesh to put on the scene
 		//1 = sphere, 2 = torus, 3 = torusKnot, 4 = Suzanne, 5 = Ajax bust, 6 = Stanford Lucy, 0 = Utah Teapot
-		const shapeOption = 5;
+		const shapeOption = 6;
 
 		//add mesh to the scene based off what shapeOption is chosen
 		switch (shapeOption) {
