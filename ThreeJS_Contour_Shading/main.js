@@ -246,31 +246,6 @@ void main() {
 `;
 //be sure to change all of the alpha values to 1 to actually see the cel shading
 
-const _TestVS = `
-
-varying float v_xpos;
-varying float v_ypos;
-
-void main() {
-	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-	vec4 worldPos = modelViewMatrix * vec4(position, 1.0);
-	v_xpos = worldPos.x;
-	v_ypos = worldPos.y;
-}
-`;
-
-const _TestFS = `
-
-varying float v_xpos;
-varying float v_ypos;
-
-void main() {
-	vec2 vals = vec2(v_xpos, v_ypos);
-	float xslope = dFdx(dot(vals, vals));
-	gl_FragColor = vec4(xslope, 0.0, 0.0, 1.0);
-}
-`;
-
 class BasicWorldDemo {
 	constructor() {
 		this._Initialize();
@@ -313,8 +288,8 @@ class BasicWorldDemo {
 		const aspect = 1920 / 1080;
 		const near = 1.0;
 		const far = 1000.0;
-		//this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-		this._camera = new THREE.OrthographicCamera(-500,500,500, -500, 0.0, far);
+		this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+		//this._camera = new THREE.OrthographicCamera(-500,500,500, -500, 0.0, far);
 		this._camera.position.set(10, 2, 5);
 
 		this._scene = new THREE.Scene();
@@ -354,10 +329,8 @@ class BasicWorldDemo {
 		//create a plane to hold our objects on top
 		const plane = new THREE.Mesh(
 			new THREE.PlaneGeometry(100, 100, 10, 10),
-			new THREE.ShaderMaterial({
-				uniforms: {},
-				vertexShader: _TestVS,
-				fragmentShader: _TestFS,
+			new THREE.MeshStandardMaterial({
+				color: 0xFFFFFF,
 			})
 		);
 		plane.castShadow = false;
