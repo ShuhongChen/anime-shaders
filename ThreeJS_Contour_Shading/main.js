@@ -194,23 +194,21 @@ void main() {
 	vec3 normal = -normalize(v_NormalInterp);
 	vec3 light_direction = normalize(v_ViewLightTargetPosition - v_ViewLightPosition);
 	vec3 viewer = normalize(-v_VertPos);
-	vec3 n = (viewMatrix * vec4(normal, 1.0)).xyz;
-	vec3 v = (viewMatrix * vec4(viewer, 1.0)).xyz;
 
 	float strength = dot(-light_direction, normal) * 0.5 + 0.5;
 
 	float contour = dot(viewer, normal);
 
 	// Compute w, the projection of the view vector onto the tangent plane of the surface, must be in view space
-	vec3 w = (viewMatrix * vec4(normalize(viewer - (contour * normal)), 1.0)).xyz;
+	vec3 w = normalize(viewer - (contour * normal));
 
 	// Compute directional derivative of dot(viewer, normal) with respect to w
   	vec3 ndx = -dFdx(v_NormalInterp);
   	vec3 ndy = -dFdy(v_NormalInterp);
 	vec3 vdx = -dFdx(v_VertPos);
 	vec3 vdy = -dFdy(v_VertPos);
-	float contourdx = dot(ndx, v) + dot(n, vdx);
-	float contourdy = dot(ndy, v) + dot(n, vdy);
+	float contourdx = dot(ndx, viewer) + dot(normal, vdx);
+	float contourdy = dot(ndy, viewer) + dot(normal, vdy);
 	vec3 dcontour = vec3(contourdx, contourdy, 0.0);
 	float contourdw = dot(dcontour, w);
 
@@ -221,7 +219,7 @@ void main() {
 	float contourdyy = 2.0 * dot(ndy, vdy);
 	float contourdww = contourdxx * w.x * w.x + contourdyx * contourdxy * w.x * w.y + contourdyy * w.y * w.y;
 
-	if (contourdw >= -0.001 && contourdw <= 0.001 && contourdww > 0.0) {
+	if (contourdw >= -0.05 && contourdw <= 0.05 && contourdww > 0.0) {
 		gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
 	} else {
 		if (strength > 0.8) {
