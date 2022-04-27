@@ -486,7 +486,7 @@ class BasicWorldDemo {
 
 		//determines which mesh to put on the scene
 		//1 = sphere, 2 = torus, 3 = torusKnot, 4 = Suzanne, 5 = Ajax bust, 6 = Stanford Lucy, 0 = Utah Teapot
-		const shapeOption = 6;
+		const shapeOption = 5;
 
 		//add mesh to the scene based off what shapeOption is chosen
 		switch (shapeOption) {

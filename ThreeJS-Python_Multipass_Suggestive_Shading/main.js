@@ -81,7 +81,7 @@ class BasicWorldDemo {
 
 		//create threejs renderer
 		this._threejs = new THREE.WebGLRenderer({
-			antialias: true,
+			antialias: false,
 			preserveDrawingBuffer: true,
 		});
 		this._threejs.shadowMap.enabled = true;
@@ -183,7 +183,7 @@ class BasicWorldDemo {
 
 		//determines which shader to apply on the mesh
 		//0 = normals, 1 = view vectors, 2 = w vectors
-		const shaderOption = 2;
+		const shaderOption = 1;
 
 		switch (shaderOption) {
 			case 0:
