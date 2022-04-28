@@ -108,7 +108,7 @@ void main() {
 
 	float contour = dot(viewer, normal);
 
-	if ((contour <= 0.1 && contour >= -0.1)) {
+	if ((contour <= 0.175 && contour >= -0.175)) {
 		gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 	} else {
 		if (strength > 0.8) {
@@ -140,7 +140,7 @@ void main() {
 const _OutlineFS = `
 
 void main() {
-	gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
+	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }
 `;
 
@@ -193,6 +193,33 @@ class BasicWorldDemo {
 		//uses multiple scenes, one used for outlines and casting object shadows, the other used for shading objects themselves
 		this._scene = new THREE.Scene();
 		this._outScene = new THREE.Scene();
+		this._outScene.background = new THREE.Color(0xffffff);
+
+		//create directional light
+		let light = new THREE.DirectionalLight(0xffffff, 1.0);
+		light.position.set(20, 100, 10);
+		light.target.position.set(0, 0, 0);
+		light.castShadow = true;
+		light.shadow.bias = -0.001;
+		light.shadow.mapSize.width = 2048;
+		light.shadow.mapSize.height = 2048;
+		light.shadow.camera.near = 0.1;
+		light.shadow.camera.far = 500.0;
+		light.shadow.camera.near = 0.5;
+		light.shadow.camera.far = 500.0;
+		light.shadow.camera.left = 100;
+		light.shadow.camera.right = -100;
+		light.shadow.camera.top = 100;
+		light.shadow.camera.bottom = -100;
+		this._scene.add(light);
+
+		//create directional light helper
+		let dirLightHelper = new THREE.DirectionalLightHelper(light, 5);
+		this._scene.add(dirLightHelper);
+
+		//create ambient light
+		let amblight = new THREE.AmbientLight(0x101010);
+		this._scene.add(amblight);
 
 		//allow user to have orbit controls
 		const controls = new OrbitControls(
@@ -236,6 +263,7 @@ class BasicWorldDemo {
 			vertexShader: _AnimeVS,
 			fragmentShader: _ContourFS,
 		});
+		animeShader.transparent = true;
 
 		let mySihouetteShader = new THREE.ShaderMaterial({
 			uniforms: {
@@ -299,8 +327,8 @@ class BasicWorldDemo {
 		var shader;
 
 		//determines which shader to apply on the mesh
-		//0 = normals, 1 = view vectors, 2 = w vectors
-		const shaderOption = 1;
+		//0 = normals, 1 = view vectors, 2 = w vectors, 3 = anime
+		const shaderOption = 3;
 
 		switch (shaderOption) {
 			case 0:
@@ -312,6 +340,8 @@ class BasicWorldDemo {
 			case 2:
 				shader = myWShader;
 				break;
+			default:
+				shader = animeShader;
 		}
 
 		//determines which shader to apply on the mesh
