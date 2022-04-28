@@ -167,7 +167,7 @@ class BasicWorldDemo {
 
 		//create threejs renderer
 		this._threejs = new THREE.WebGLRenderer({
-			antialias: false,
+			antialias: true,
 			preserveDrawingBuffer: true,
 		});
 		this._threejs.shadowMap.enabled = true;
