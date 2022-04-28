@@ -8,6 +8,8 @@ from PIL import Image
 import numpy as np
 
 # load image
+base_img = Image.open('./base.png').convert('RGB')
+base_arr = ((np.asarray(base_img)/255.0) - 0.5) * 2
 normals_img = Image.open('./normals.png').convert('RGB')
 normals_arr = ((np.asarray(normals_img)/255.0) - 0.5) * 2
 viewers_img = Image.open('./viewers.png').convert('RGB')
@@ -16,10 +18,10 @@ ws_img = Image.open('./ws.png').convert('RGB')
 ws_arr = ((np.asarray(ws_img)/255.0) - 0.5) * 2
 
 # process pixel-by-pixel
-threshold = 0.2
+threshold = 0.1
 h,w,ch = normals_arr.shape
 out_arr = np.zeros((h,w))
-out_contours_arry = np.zeros((h,w))
+final_arr = np.zeros((h,w))
 for i in range(1, h-1):
 	for j in range(1, w-1):
 
@@ -43,20 +45,15 @@ for i in range(1, h-1):
 		# calculate second order directional derivative using backward finite differences of first derivatives
 		dwdwdot = (dwdot - xneighbordwdot) * ws_arr[i,j,0] + (dwdot - yneighbordwdot) * ws_arr[i,j,1]
 
-		if dwdot < threshold and dwdot > -threshold and dwdwdot > 0.025:
+		if dwdot <= threshold and dwdot >= -threshold and dwdwdot > 0.025:
 			out_arr[i,j] = 1
 		else:
 			out_arr[i,j] = 0
 
-		if np.dot(normals_arr[i,j], viewers_arr[i,j]) < 0.4 and np.dot(normals_arr[i,j], viewers_arr[i,j]) > -0.4:
-			out_contours_arry[i,j] = 1
-		else:
-			out_contours_arry[i,j] = 0
-
 # save image
 out_img = Image.fromarray((out_arr*255).astype(np.uint8))
 out_img.save('./sugg_contours.png')
-out_img = Image.fromarray((out_contours_arry*255).astype(np.uint8))
-out_img.save('./contours.png')
+final_img = Image.fromarray((final_arr*255).astype(np.uint8))
+final_img.save('./final.png')
 
 
