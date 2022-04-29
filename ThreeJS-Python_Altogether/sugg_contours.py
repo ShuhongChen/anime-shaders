@@ -9,7 +9,7 @@ import numpy as np
 
 # load image
 base_img = Image.open('./base.png').convert('RGB')
-base_arr = ((np.asarray(base_img)/255.0) - 0.5) * 2
+base_arr = np.asarray(base_img)/255.0
 normals_img = Image.open('./normals.png').convert('RGB')
 normals_arr = ((np.asarray(normals_img)/255.0) - 0.5) * 2
 viewers_img = Image.open('./viewers.png').convert('RGB')
@@ -21,7 +21,7 @@ ws_arr = ((np.asarray(ws_img)/255.0) - 0.5) * 2
 threshold = 0.1
 h,w,ch = normals_arr.shape
 out_arr = np.zeros((h,w))
-final_arr = np.zeros((h,w))
+final_arr = np.zeros((h,w,ch))
 for i in range(1, h-1):
 	for j in range(1, w-1):
 
@@ -47,8 +47,10 @@ for i in range(1, h-1):
 
 		if dwdot <= threshold and dwdot >= -threshold and dwdwdot > 0.025:
 			out_arr[i,j] = 1
+			final_arr[i,j] = [0.3, 0.3, 0.3]
 		else:
 			out_arr[i,j] = 0
+			final_arr[i,j] = base_arr[i,j]
 
 # save image
 out_img = Image.fromarray((out_arr*255).astype(np.uint8))

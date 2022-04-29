@@ -215,7 +215,7 @@ class BasicWorldDemo {
 
 		//create directional light helper
 		let dirLightHelper = new THREE.DirectionalLightHelper(light, 5);
-		this._scene.add(dirLightHelper);
+		//this._scene.add(dirLightHelper);
 
 		//create ambient light
 		let amblight = new THREE.AmbientLight(0x101010);
