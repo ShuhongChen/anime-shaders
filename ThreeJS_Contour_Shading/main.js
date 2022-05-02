@@ -199,35 +199,34 @@ void main() {
 
 	float contour = dot(viewer, normal);
 
-	// Compute derivative of dot(viewer, normal)
+	// Compute w, the projection of the view vector onto the tangent plane of the surface, must be in view space
+	vec3 w = normalize(viewer - (contour * normal));
+
+	// Compute directional derivative of dot(viewer, normal) with respect to w
   	vec3 ndx = -dFdx(v_NormalInterp);
   	vec3 ndy = -dFdy(v_NormalInterp);
 	vec3 vdx = -dFdx(v_VertPos);
 	vec3 vdy = -dFdy(v_VertPos);
+	mat3 dnormal = mat3(ndx, ndy, vec3(0.0));
+	mat3 dviewer = mat3(vdx, vdy, vec3(0.0));
 	float contourdx = dot(ndx, viewer) + dot(normal, vdx);
 	float contourdy = dot(ndy, viewer) + dot(normal, vdy);
-	vec2 dcontour = vec2(contourdx, contourdy);
-	float contourdw = dot(dcontour, dcontour);
+	vec3 dcontour = vec3(contourdx, contourdy, 0.0);
+	//float contourdw = dot(dcontour, w);
+	float contourdw = dot(normal * dviewer + viewer * dnormal, w);
 
 	// Compute 2nd derivative of dot(viewer, normal)
-	vec3 ndxx = -dFdx(dFdx(v_NormalInterp));
-  	vec3 ndyx = -dFdx(dFdy(v_NormalInterp));
-	vec3 ndxy = -dFdy(dFdx(v_NormalInterp));
-  	vec3 ndyy = -dFdy(dFdy(v_NormalInterp));
-	vec3 vdxx = -dFdx(dFdx(v_VertPos));
-	vec3 vdyx = -dFdx(dFdy(v_VertPos));
-	vec3 vdxy = -dFdy(dFdx(v_VertPos));
-	vec3 vdyy = -dFdy(dFdy(v_VertPos));
-	float contourdxx = dot(ndxx, viewer) + (2.0 * dot(ndx, vdx)) + dot(normal, vdxx);
-	float contourdyx = dot(ndyx, viewer) + dot(ndy, vdx) + dot(ndx, vdy) + dot(normal, vdyx);
-	float contourdxy = dot(ndxy, viewer) + dot(ndx, vdy) + dot(ndy, vdx) + dot(normal, vdxy);
-	float contourdyy = dot(ndyy, viewer) + (2.0 * dot(ndy, vdy)) + dot(normal, vdyy);
-	mat2 ddcontour;
-	ddcontour[0] = vec2(contourdxx, contourdyx);
-	ddcontour[1] = vec2(contourdxy, contourdyy);
-	float contourdww = dot(ddcontour[0], ddcontour[0]) + dot(ddcontour[1], ddcontour[1]);
+	vec3 wdx = dFdx(v_VertPos - dot(v_VertPos, v_NormalInterp) * v_NormalInterp);
+	vec3 wdy = dFdy(v_VertPos - dot(v_VertPos, v_NormalInterp) * v_NormalInterp);
+	mat3 dw = mat3(wdx, wdy, vec3(0.0));
+	float contourdxx = 2.0 * dot(ndx, vdx);
+	float contourdyx = dot(ndy, vdx) + dot(ndx, vdy);
+	float contourdxy = dot(ndx, vdy) + dot(ndy, vdx);
+	float contourdyy = 2.0 * dot(ndy, vdy);
+	//float contourdww = contourdxx * w.x * w.x + contourdyx * contourdxy * w.x * w.y + contourdyy * w.y * w.y;
+	float contourdww = dot(2.0 * dnormal * dviewer * w, w) + dot((normal * dviewer + viewer * dnormal) * dw, w);
 
-	if (contourdw >= 0.0 && contourdw <= 0.001 && contourdww > 0.0) {
+	if (contourdw >= -0.1 && contourdw <= 0.1 && contourdww > 0.5) {
 		gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
 	} else {
 		if (strength > 0.8) {
