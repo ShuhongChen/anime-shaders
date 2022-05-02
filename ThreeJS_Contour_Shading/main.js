@@ -485,7 +485,7 @@ class BasicWorldDemo {
 		}
 
 		//determines which mesh to put on the scene
-		//1 = sphere, 2 = torus, 3 = torusKnot, 4 = Suzanne, 5 = Ajax bust, 6 = Stanford Lucy, 0 = Utah Teapot
+		//1 = sphere, 2 = torus, 3 = torusKnot, 4 = Suzanne, 5 = Ajax bust, 6 = Stanford Lucy, 7 = Utah Teapot, 8 = Amber, 9 = Vanilla, 0 = Pekora
 		const shapeOption = 5;
 
 		//add mesh to the scene based off what shapeOption is chosen
@@ -567,17 +567,81 @@ class BasicWorldDemo {
 					}
 				)
 				break;
-			default:
+			case 7:
 				loader.load(
 					'models/Utah_teapot.stl',
 					function (geometry) {
-						var tea = new THREE.Mesh(manualVertices(geometry), shader);
+						var teaGeo = manualVertices(geometry)
+						var tea = new THREE.Mesh(teaGeo, shader);
 						tea.position.set(0, 3, 0);
 						tea.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
 						tea.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
 						tea.scale.set(0.5, 0.5, 0.5);
 						tea.castShadow = true;
 						scene.add(tea);
+					},
+					(xhr) => {
+						console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+					},
+					(error) => {
+						console.log(error)
+					}
+				)
+				break;
+			case 8:
+				loader.load(
+					'models/amber.stl',
+					function (geometry) {
+						var amberGeo = manualVertices(geometry)
+						var amber = new THREE.Mesh(amberGeo, shader);
+						amber.position.set(0, 2, 0);
+						amber.rotateOnAxis(new THREE.Vector3(0,1,0), -1.571);
+						amber.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+						amber.scale.set(0.5, 0.5, 0.5);
+						amber.castShadow = true;
+						scene.add(amber);
+					},
+					(xhr) => {
+						console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+					},
+					(error) => {
+						console.log(error)
+					}
+				)
+				break;
+			case 9:
+				loader.load(
+					'models/vanilla.stl',
+					function (geometry) {
+						var vanGeo = manualVertices(geometry)
+						var van = new THREE.Mesh(vanGeo, shader);
+						van.position.set(0, 2, 0);
+						van.rotateOnAxis(new THREE.Vector3(0,1,0), -1.571);
+						van.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+						van.scale.set(0.5, 0.5, 0.5);
+						van.castShadow = true;
+						scene.add(van);
+					},
+					(xhr) => {
+						console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+					},
+					(error) => {
+						console.log(error)
+					}
+				)
+				break;
+			default:
+				loader.load(
+					'models/usada_pekora.stl',
+					function (geometry) {
+						var pekGeo = manualVertices(geometry)
+						var pek = new THREE.Mesh(pekGeo, shader);
+						pek.position.set(0, 1, 0);
+						pek.rotateOnAxis(new THREE.Vector3(0,1,0), 1.571);
+						pek.rotateOnAxis(new THREE.Vector3(1,0,0), -1.571);
+						pek.scale.set(0.5, 0.5, 0.5);
+						pek.castShadow = true;
+						scene.add(pek);
 					},
 					(xhr) => {
 						console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
