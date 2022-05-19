@@ -6,7 +6,7 @@
 [lucy]: _env/__lucy__.png 'Suggestive Contours of the Stanford Lucy'
 
 **Non-Photorealistic Shading Techniques for Anime-Style Rendering**  
-Andy Qu[\*](https://toastymcvoid.itch.io/), Shuhong Chen[\*](https://shuhongchen.github.io/), Matthias Zwicker[\*](https://www.cs.umd.edu/~zwicker/)  
+Andy Qu[\*](https://www.linkedin.com/in/andy-qu-aa7987219/), Shuhong Chen[\*](https://shuhongchen.github.io/), Matthias Zwicker[\*](https://www.cs.umd.edu/~zwicker/)  
 University of Maryland, College Park  
 Department of Computer Science  
 \[[github](https://github.com/ShuhongChen/anime-shaders)\]
