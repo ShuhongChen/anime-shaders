@@ -22,7 +22,7 @@ _Shaders have historically played a crucial part in drawing 3D models onto a com
 - an installation of Python
 - an installation of a package manager for Python (either `Anaconda` or `pip`)
 - a Python environment with `PIL`/`pillow` and `numpy` installed
-- the `security.fileuri.strict_origin_policy` set to `false` when accessing `about:config` on Firefox
+- the `security.fileuri.strict_origin_policy` setting set to `false` when accessing `about:config` on Firefox
 - a clone of this repo on your computer
 
 ### Instructions
