@@ -10,7 +10,7 @@ Andy Qu[\*](https://toastymcvoid.itch.io/), Shuhong Chen[\*](https://shuhongchen
 University of Maryland, College Park  
 Department of Computer Science  
 \[[github](https://github.com/ShuhongChen/anime-shaders)\]
-\[[paper]()\]
+\[[paper](https://github.com/ShuhongChen/anime-shaders/blob/main/Final_Report.pdf)\]
 
 _Shaders have historically played a crucial part in drawing 3D models onto a computer screen as they have been an important component in computer games, movies, and simulations. As a result, various well-known shading methods and techniques have been used to suit a multitude of purposes and environments, including Flat, Gouraud, and Phong shading. Of the many shading methods, some can be used to mimic photorealism while others have been utilized to achieve different results, including a cartoon-ish depiction. In our work, we create GLSL and Python implementations of some of the classically known shading techniques as well as other non-photorealistic shaders that aim to mimic the Anime-like style._
 
